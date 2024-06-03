@@ -71,9 +71,12 @@ class Service implements iService
                 HelperLog::saveError($exceptionMsg);
                 throw new \Exception($exceptionMsg);
             } else {
-                require PATH_MODULES . $module . DS . $service . SERVICE_PHP;
+                if (!class_exists('\Services\\' . $service)) {
+                    require PATH_MODULES . $module . DS . $service . SERVICE_PHP;
+                }
 
                 $service = '\Services\\' . $service;
+
                 return new $service(module: $module);
             }
         } catch (\Throwable $th) {

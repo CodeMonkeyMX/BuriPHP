@@ -4,7 +4,7 @@
  * @package BuriPHP.Libraries
  *
  * @since 1.0
- * @version 2.4
+ * @version 2.3
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -80,7 +80,9 @@ class Controller implements iController
                 HelperLog::saveError($exceptionMsg);
                 throw new \Exception($exceptionMsg);
             } else {
-                require PATH_MODULES . $module . DS . $controller . CONTROLLER_PHP;
+                if (!class_exists('\Controllers\\' . $controller)) {
+                    require PATH_MODULES . $module . DS . $controller . CONTROLLER_PHP;
+                }
 
                 $controller = '\Controllers\\' . $controller;
 
@@ -150,12 +152,6 @@ class Controller implements iController
         return self::getPayload();
     }
 
-
-    /**
-     * Obtiene los datos de la solicitud HTTP y los devuelve como un arreglo.
-     *
-     * @return array Los datos de la solicitud HTTP.
-     */
     final public function getPayload()
     {
         $request = [];
@@ -176,26 +172,20 @@ class Controller implements iController
         return $request;
     }
 
-    /**
-     * Función privada para analizar los datos sin procesar.
-     *
-     * Lee los datos sin procesar de la entrada PHP y los procesa según su tipo.
-     * Si los datos son JSON, los decodifica y devuelve un array asociativo.
-     * Si los datos son una cadena de consulta, los analiza y devuelve un array asociativo.
-     * Si los datos son una carga de archivo, los guarda temporalmente y actualiza la variable global $_FILES.
-     *
-     * @return array Los datos procesados.
-     */
     private static function parseRawData()
     {
         $_raw_data = fopen("php://input", "r");
         $raw_data = '';
 
+        /* Read the data 1 KB at a time
+       and write to the file */
         while ($chunk = fread($_raw_data, 1024))
             $raw_data .= $chunk;
 
+        /* Close the streams */
         fclose($_raw_data);
 
+        // Fetch content and determine boundary
         $boundary = substr($raw_data, 0, strpos($raw_data, "\r\n"));
 
         if (empty($boundary)) {
@@ -208,15 +198,19 @@ class Controller implements iController
             }
         }
 
+        // Fetch each part
         $parts = array_slice(explode($boundary, $raw_data), 1);
         $data = array();
 
         foreach ($parts as $part) {
+            // If this is the last part, break
             if ($part == "--\r\n") break;
 
+            // Separate content from headers
             $part = ltrim($part, "\r\n");
             list($raw_headers, $body) = explode("\r\n\r\n", $part, 2);
 
+            // Parse the headers list
             $raw_headers = explode("\r\n", $raw_headers);
             $headers = array();
             foreach ($raw_headers as $header) {
@@ -224,6 +218,7 @@ class Controller implements iController
                 $headers[strtolower($name)] = ltrim($value, ' ');
             }
 
+            // Parse the Content-Disposition to get the field name, etc.
             if (isset($headers['content-disposition'])) {
                 $filename = null;
                 $tmp_name = null;
@@ -234,16 +229,21 @@ class Controller implements iController
                 );
                 list(, $type, $name) = $matches;
 
+                //Parse File
                 if (isset($matches[4])) {
+                    //if labeled the same as previous, skip
                     if (isset($_FILES[$matches[2]])) {
                         continue;
                     }
 
+                    //get filename
                     $filename = $matches[4];
 
+                    //get tmp name
                     $filename_parts = pathinfo($filename);
                     $tmp_name = tempnam(ini_get('upload_tmp_dir'), $filename_parts['filename']);
 
+                    //populate $_FILES with information, size may be off in multibyte situation
                     $_FILES[$matches[2]] = array(
                         'error' => 0,
                         'name' => $filename,
@@ -252,8 +252,11 @@ class Controller implements iController
                         'type' => $value
                     );
 
+                    //place in temporary directory
                     file_put_contents($tmp_name, $body);
-                } else {
+                }
+                //Parse Field
+                else {
                     $data[$name] = substr($body, 0, strlen($body) - 2);
                 }
             }
