@@ -4,7 +4,7 @@
  * @package BuriPHP.Libraries
  *
  * @since 1.0
- * @version 2.3
+ * @version 2.4
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -152,6 +152,11 @@ class Controller implements iController
         return self::getPayload();
     }
 
+    /**
+     * Obtiene los datos de la solicitud HTTP y los devuelve como un arreglo.
+     *
+     * @return array Los datos de la solicitud HTTP.
+     */
     final public function getPayload()
     {
         $request = [];
@@ -172,6 +177,16 @@ class Controller implements iController
         return $request;
     }
 
+    /**
+     * Función privada para analizar los datos sin procesar.
+     *
+     * Lee los datos sin procesar de la entrada PHP y los procesa según su tipo.
+     * Si los datos son JSON, los decodifica y devuelve un array asociativo.
+     * Si los datos son una cadena de consulta, los analiza y devuelve un array asociativo.
+     * Si los datos son una carga de archivo, los guarda temporalmente y actualiza la variable global $_FILES.
+     *
+     * @return array Los datos procesados.
+     */
     private static function parseRawData()
     {
         $_raw_data = fopen("php://input", "r");
