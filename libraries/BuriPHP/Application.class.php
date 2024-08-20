@@ -145,7 +145,9 @@ final class Application
                 $exceptionMsg = "No existe el controller: " . PATH_MODULES . $trace['MODULE'] . DS . $trace['CONTROLLER'] . CONTROLLER_PHP;
 
                 HelperHeader::setStatusCode(500);
-                HelperLog::saveError($exceptionMsg);
+                if (json_decode(json_encode(getallheaders()), true)['Sec-Fetch-Mode'] !== 'cors') {
+                    HelperLog::saveError($exceptionMsg);
+                }
                 throw new \Exception($exceptionMsg);
             } else {
                 define('MODULE_NAME', $trace['MODULE']);
