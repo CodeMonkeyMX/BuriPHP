@@ -60,7 +60,7 @@ class Subscription extends Repository
             foreach ($args['where'] as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $_key => $_value) {
-                        if (!in_array(strtoupper($key), ["ORDER", "AND", "OR"])) {
+                        if (!in_array(strtoupper($key), ["OR", "AND", "ORDER", "MATCH", "LIMIT", "GROUP", "HAVING"])) {
                             $key = "{$this->table}." . Database::camelToSnake($key);
                         } else {
                             $key = Database::camelToSnake($key);
@@ -69,7 +69,11 @@ class Subscription extends Repository
                         $where[$key]["{$this->table}." . Database::camelToSnake($_key)] = $_value;
                     }
                 } else {
-                    $where["{$this->table}." . Database::camelToSnake($key)] = $value;
+                    if (!in_array(strtoupper($key), ["OR", "AND", "ORDER", "MATCH", "LIMIT", "GROUP", "HAVING"])) {
+                        $where["{$this->table}." . Database::camelToSnake($key)] = $value;
+                    } else {
+                        $where[Database::camelToSnake($key)] = $value;
+                    }
                 }
             }
         }
@@ -83,15 +87,6 @@ class Subscription extends Repository
                 "USER_ID" => "ID"
             ]
         ], $object, $where, function ($data) use (&$response) {
-            if (array_key_exists('DATE_CREATED', $data)) {
-                $data['DATE_CREATED'] = [
-                    'ISO8601' => date(DATE_ISO8601, strtotime($data['DATE_CREATED'])),
-                    'formatted' => HelperDate::getDate($data['DATE_CREATED'], true),
-                    'date' => HelperDateTime::getOnlyDate($data['DATE_CREATED']),
-                    'time' => HelperDateTime::getOnlyTime($data['DATE_CREATED'])
-                ];
-            }
-
             $response[] = $data;
         });
 
