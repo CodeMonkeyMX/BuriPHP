@@ -34,13 +34,9 @@ spl_autoload_register(function ($str) {
     $resource = end($arr);
 
     if (isset($arr[1]) && $arr[1] == 'BuriPHP') {
-        if (in_array($arr[2], ['Helpers', 'Interfaces'])) { // Incluimos los helpers e interfaces
+        if (in_array($arr[2], ['Helpers'])) { // Incluimos los helpers
             if (file_exists(PATH_BURIPHP_HELPERS . $resource . CLASS_PHP)) { // Helpers
                 require_once PATH_BURIPHP_HELPERS . $resource . CLASS_PHP;
-            }
-
-            if (file_exists(PATH_BURIPHP_INTERFACES . $resource . INTERFACE_PHP)) { // Interfaces
-                require_once PATH_BURIPHP_INTERFACES . $resource . INTERFACE_PHP;
             }
         } else {
             if (file_exists(PATH_BURIPHP_LIBRARIES . $resource . CLASS_PHP)) { // Librerias de BuriPHP

@@ -17,9 +17,8 @@ use Libraries\BuriPHP\Helpers\HelperArray;
 use Libraries\BuriPHP\Helpers\HelperFile;
 use Libraries\BuriPHP\Helpers\HelperLog;
 use Libraries\BuriPHP\Helpers\HelperValidate;
-use Libraries\BuriPHP\Interfaces\iService;
 
-class Service implements iService
+class Service
 {
     public $repository;
 

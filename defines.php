@@ -12,7 +12,6 @@ define('PATH_SETTINGS', PATH_ROOT . DS . 'Settings.php');
 define('PATH_LIBRARIES', PATH_ROOT . DS . 'libraries' . DS);
 define('PATH_BURIPHP_LIBRARIES', PATH_LIBRARIES . 'BuriPHP' . DS);
 define('PATH_BURIPHP_HELPERS', PATH_BURIPHP_LIBRARIES . 'Helpers' . DS);
-define('PATH_BURIPHP_INTERFACES', PATH_BURIPHP_LIBRARIES . 'Interfaces' . DS);
 define('PATH_MODULES', PATH_ROOT . DS . 'modules' . DS);
 define('PATH_SHARED', PATH_ROOT . DS . 'shared' . DS);
 define('PATH_LOGS', PATH_ROOT . DS . 'logs' . DS);

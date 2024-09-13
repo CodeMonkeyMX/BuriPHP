@@ -13,7 +13,6 @@
 
 namespace Libraries\BuriPHP;
 
-use Libraries\BuriPHP\Interfaces\iRouter;
 use Libraries\BuriPHP\Helpers\HelperArray;
 use Libraries\BuriPHP\Helpers\HelperConvert;
 use Libraries\BuriPHP\Helpers\HelperFile;
@@ -21,7 +20,7 @@ use Libraries\BuriPHP\Helpers\HelperServer;
 use Libraries\BuriPHP\Helpers\HelperString;
 use Libraries\BuriPHP\Helpers\HelperValidate;
 
-class Router implements iRouter
+class Router
 {
     private array $urls = [];
     private int $useVersion = 1;
