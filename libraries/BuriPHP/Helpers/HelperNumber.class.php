@@ -18,12 +18,20 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperNumber
 {
     /**
-     * Devuelve un string de una cantidad en fomarto del pais locale
+     * Formatea un número como una cadena de texto que representa una cantidad monetaria.
      *
-     * @param        $number
-     * @param string $symbol
+     * @param float  $number El número a formatear.
+     * @param string $symbol (Opcional) El símbolo de la moneda a utilizar. Por defecto es una cadena vacía.
      *
-     * @return string
+     * @return string La representación formateada del número como una cantidad monetaria.
+     *
+     * Este método utiliza la configuración regional del sistema para determinar el formato de la moneda.
+     * Si la configuración regional no está establecida, se establece a una configuración predeterminada.
+     * 
+     * Ejemplo de uso:
+     * ```php
+     * echo HelperNumber::displayMoney(1234.56, '$'); // Salida: $ 1,234.56
+     * ```
      */
     public static function displayMoney($number, $symbol = '')
     {
@@ -147,10 +155,10 @@ abstract class HelperNumber
     }
 
     /**
-     * Devuelve un string unicamente con los números.
+     * Extrae todos los números de una cadena dada.
      *
-     * @param string|null $string
-     * @return string|null
+     * @param string|null $string La cadena de la cual se extraerán los números. Si es null, se devolverá null.
+     * @return string|null Una cadena que contiene solo los números extraídos de la cadena original, o null si la entrada es null.
      */
     public static function getNumbers($string)
     {
@@ -162,11 +170,10 @@ abstract class HelperNumber
     }
 
     /**
-     * Genera un número aleatorio de N digitos de longitud.
+     * Genera un número aleatorio de una longitud específica.
      *
-     * @param int $numDigits
-     *
-     * @return string
+     * @param int $numDigits La cantidad de dígitos que debe tener el número aleatorio. Por defecto es 6.
+     * @return string El número aleatorio generado como una cadena de texto.
      */
     public static function random($numDigits = 6): string
     {
@@ -180,12 +187,11 @@ abstract class HelperNumber
     }
 
     /**
-     * Devuelve un numero aleatorio entre un mínimo y un máximo.
+     * Genera un número aleatorio dentro de un rango especificado y lo devuelve como una cadena.
      *
-     * @param $min
-     * @param $max
-     *
-     * @return int
+     * @param int $min El valor mínimo del rango.
+     * @param int $max El valor máximo del rango.
+     * @return string El número aleatorio generado como una cadena.
      */
     public static function createRandomRange($min, $max): string
     {
