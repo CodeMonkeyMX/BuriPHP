@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,9 +18,17 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperSession
 {
     /**
-     * Inicia una sessión
+     * Inicia una sesión PHP.
      *
-     * @param string|null $sessionId
+     * Este método comprueba si no hay una sesión ya iniciada. Si no hay una sesión
+     * iniciada y se proporciona un ID de sesión, se establece ese ID antes de iniciar
+     * la sesión. Si ya hay una sesión iniciada y se proporciona un ID de sesión
+     * diferente al actual, se destruye la sesión actual, se establece el nuevo ID de
+     * sesión y se inicia una nueva sesión.
+     *
+     * @param string|null $sessionId El ID de sesión a utilizar, si se proporciona.
+     * 
+     * @return void
      */
     public static function init($sessionId = null): void
     {
@@ -41,11 +49,14 @@ abstract class HelperSession
     }
 
     /**
-     * Guarda un valor en la sesión.
-     * El valor es guardado en la sesion de forma serializada.
+     * Establece un valor en la sesión.
      *
-     * @param string $key
-     * @param object $value
+     * Serializa el valor proporcionado y lo almacena en la variable de sesión
+     * asociada con la clave especificada.
+     *
+     * @param string $key La clave con la que se almacenará el valor en la sesión.
+     * @param mixed $value El valor que se almacenará en la sesión. Si no se proporciona,
+     *                     se almacenará null.
      */
     public static function setValue($key, $value = null)
     {
@@ -53,13 +64,10 @@ abstract class HelperSession
     }
 
     /**
-     * Devuelve un valor guardado en la sesión.
-     * Si no esta definido devuelve null.
-     * El valor es guardado en la sesion de forma serializada.
+     * Obtiene el valor de una clave específica de la sesión.
      *
-     * @param string $key
-     *
-     * @return mixed
+     * @param string $key La clave de la cual se desea obtener el valor.
+     * @return mixed|null El valor deserializado almacenado en la sesión, o null si la clave no está definida.
      */
     public static function getValue($key)
     {
@@ -70,15 +78,11 @@ abstract class HelperSession
         return unserialize($_SESSION[$key]);
     }
 
-
     /**
-     * Devuelve un valor guardado en la sesión como un string.
-     * Si no esta definido devuelve null.
-     * El valor es guardado en la sesion de forma serializada
+     * Obtiene una cadena de texto almacenada en la sesión.
      *
-     * @param string $key
-     *
-     * @return string
+     * @param string $key La clave de la sesión para obtener el valor.
+     * @return string|null La cadena de texto almacenada en la sesión, o null si no existe.
      */
     public static function getString($key)
     {
@@ -90,13 +94,10 @@ abstract class HelperSession
     }
 
     /**
-     * Si no esta definido devuelve null
-     * El valor es guardado en la sesion de forma serializada.
-     * Si no es un valor numérico, lanza una alert.
+     * Obtiene un valor entero de la sesión.
      *
-     * @param string $key
-     *
-     * @return int
+     * @param string $key La clave del valor en la sesión.
+     * @return int|null El valor entero almacenado en la sesión, o null si no existe.
      */
     public static function getInt($key)
     {
@@ -114,14 +115,10 @@ abstract class HelperSession
     }
 
     /**
-     * Devuelve un valor guardado en la sesión como un bool.
-     * Si no esta definido devuelve null.
-     * El valor es guardado en la sesion de forma serializada.
-     * Si no es un valor bool, lanza una alert.
+     * Obtiene un valor booleano de la sesión.
      *
-     * @param string $key
-     *
-     * @return bool
+     * @param string $key La clave del valor almacenado en la sesión.
+     * @return bool|null Devuelve el valor booleano almacenado en la sesión, o null si la clave no existe.
      */
     public static function getBool($key)
     {
@@ -138,7 +135,12 @@ abstract class HelperSession
     }
 
     /**
-     *  Destruye la sesion
+     * Destruye la sesión actual si está activa.
+     *
+     * Este método comprueba si la sesión está iniciada y, en caso afirmativo,
+     * destruye la sesión y elimina todas las variables de sesión.
+     *
+     * @return void
      */
     public static function destroy(): void
     {
@@ -150,9 +152,9 @@ abstract class HelperSession
     }
 
     /**
-     * Elimina un valor guardado en la sessión
+     * Elimina un valor de la sesión basado en la clave proporcionada.
      *
-     * @param string $key
+     * @param string $key La clave del valor que se desea eliminar de la sesión.
      */
     public static function removeValue($key)
     {
@@ -160,13 +162,13 @@ abstract class HelperSession
     }
 
     /**
-     * Verifica si existe una variable de sesion.
+     * Verifica si existe un valor en la sesión para una clave dada.
      *
-     * @static
+     * Esta función comprueba si una clave específica en la variable de sesión
+     * está establecida y no está vacía.
      *
-     * @param string $key
-     *
-     * @return  void
+     * @param string $key La clave de la variable de sesión a verificar.
+     * @return bool Devuelve true si la clave está establecida y no está vacía, de lo contrario false.
      */
     public static function existsValue($key)
     {
@@ -174,7 +176,13 @@ abstract class HelperSession
     }
 
     /**
-     *  Verifica si existe una sesion activa.
+     * Verifica si una sesión PHP está activa.
+     *
+     * Esta función comprueba el estado actual de la sesión y devuelve 
+     * verdadero si la sesión está activa (PHP_SESSION_ACTIVE), de lo 
+     * contrario, devuelve falso.
+     *
+     * @return bool Verdadero si la sesión está activa, falso en caso contrario.
      */
     public static function isActive()
     {
@@ -182,10 +190,13 @@ abstract class HelperSession
     }
 
     /**
-     * Comprobar si la sessión esta caducada.
-     * Si despues de N minutos, no ha habido una recarga, se destruye
-     * la sesión.
-     * Cada recarga de sessión se actualiza el tiempo.
+     * Verifica si la sesión del usuario ha caducado por inactividad.
+     *
+     * Este método comprueba si el usuario está autenticado y si la sesión ha 
+     * estado inactiva por más tiempo del permitido. Si la sesión ha caducado, 
+     * destruye la sesión y termina la ejecución del script.
+     *
+     * @return void
      */
     public static function isTimeOut()
     {
