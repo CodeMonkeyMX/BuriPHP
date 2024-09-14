@@ -34,7 +34,7 @@ class Controller
         }
 
         $controller = explode('\\', get_called_class());
-        $controller = HelperArray::getLast($controller);
+        $controller = HelperArray::getLastValue($controller);
 
         $module = (isset($args['module']) && !empty($args['module'])) ? $args['module'] : Router::getEndpoint()[1]['MODULE'];
 
@@ -121,33 +121,6 @@ class Controller
         }
 
         return $request;
-    }
-
-    /**
-     * @deprecated This function is deprecated and should not be used.
-     * Obtiene la data e imagenes enviada por post.
-     */
-    final public function getPost()
-    {
-        return self::getPayload();
-    }
-
-    /**
-     * @deprecated This function is deprecated and should not be used.
-     * Obtiene la data enviada por put.
-     */
-    final public function getPut()
-    {
-        return self::getPayload();
-    }
-
-    /**
-     * @deprecated This function is deprecated and should not be used.
-     * Obtiene la data e imagenes enviada por patch.
-     */
-    final public function getPatch()
-    {
-        return self::getPayload();
     }
 
     /**
