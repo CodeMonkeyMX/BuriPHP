@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -20,10 +20,20 @@ use Libraries\BuriPHP\Debug;
 abstract class HelperHeader
 {
     /**
-     * Asigna el codigo de status del protocolo http
+     * Establece el código de estado HTTP y el texto asociado en la cabecera de la respuesta.
      *
-     * @param int    $code
-     * @param string $text
+     * @param int $code Código de estado HTTP. Por defecto es 200.
+     * @param string $text Texto asociado al código de estado. Si no se proporciona, se utilizará el texto predeterminado.
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException Si el código de estado no es numérico.
+     *
+     * @example
+     * HelperHeader::setStatusCode(404);
+     * HelperHeader::setStatusCode(500, 'Error Interno del Servidor');
+     *
+     * @note Si no se proporciona un texto y el código de estado no es reconocido, se lanzará una alerta.
      */
     public static function setStatusCode($code = 200, $text = '')
     {
@@ -96,9 +106,11 @@ abstract class HelperHeader
     }
 
     /**
-     * Al acarga runa página, redirecciona a otra
+     * Redirige a una URL especificada.
      *
-     * @param $http
+     * Esta función envía una cabecera HTTP para redirigir al usuario a la URL proporcionada.
+     *
+     * @param string $http La URL a la que se redirigirá al usuario.
      */
     public static function redirect($http)
     {
@@ -106,9 +118,9 @@ abstract class HelperHeader
     }
 
     /**
-     * Cabecera que redirecciona a una url
+     * Redirige al usuario a una URL específica y termina la ejecución del script.
      *
-     * @param $url
+     * @param string $url La URL a la que se redirigirá al usuario.
      */
     public static function goLocation($url)
     {
@@ -117,9 +129,16 @@ abstract class HelperHeader
     }
 
     /**
-     * Desactivamos la cache
+     * Establece las cabeceras HTTP para indicar que el contenido ha expirado y no debe ser almacenado en caché.
+     * 
+     * Esta función envía las siguientes cabeceras:
+     * - `Expires`: Fecha fija en el pasado para indicar que el contenido ha expirado.
+     * - `Cache-Control`: Directivas para evitar el almacenamiento en caché del contenido.
+     * - `Last-Modified`: Fecha y hora actuales en formato GMT.
+     * - `Pragma`: Directiva para evitar el almacenamiento en caché.
+     * 
+     * @return void
      */
-
     public static function cacheExpired()
     {
         $now = gmdate("D, d M Y H:i:s");
@@ -130,7 +149,13 @@ abstract class HelperHeader
     }
 
     /**
-     * Elimina el funcionament de la cache
+     * Borra la caché del navegador estableciendo los encabezados HTTP apropiados.
+     *
+     * Esta función envía los siguientes encabezados HTTP:
+     * - "Cache-Control: no-cache": Indica que el navegador no debe almacenar en caché la respuesta.
+     * - "Expires: -1": Indica que la respuesta ha expirado y no debe ser almacenada en caché.
+     *
+     * @return void
      */
     public static function clearCache()
     {
@@ -139,18 +164,13 @@ abstract class HelperHeader
     }
 
     /**
-     * Activa la autenticación en modo Basic.
-     * El navegador muestra el cuadro de diálogo estándar donde se 
-     * pide el usuario y contraseña esperando al usuario
-     * Si se cancela, sige sin la ejecución y finaliza con el die, ya 
-     * que no ha entrado los datos.
-     * Si entra el usuario y contraseña, se vuelve a cargar la misma 
-     * página pero con las variables
-     * del servidor $_SERVER['PHP_AUTH_USER'] y
-     * $_SERVER['PHP_AUTH_PW'] en donde podremos comprobar si son 
-     * correctos
+     * Establece las cabeceras HTTP para la autenticación básica.
      *
-     * @param $realm
+     * @param string $realm El nombre del ámbito (realm) para la autenticación.
+     *
+     * Esta función envía dos cabeceras HTTP:
+     * - 'WWW-Authenticate' para solicitar la autenticación básica.
+     * - 'HTTP/1.0 401 Unauthorized' para indicar que el acceso no está autorizado sin autenticación.
      */
     public static function setAutenticacion($realm)
     {
@@ -158,6 +178,24 @@ abstract class HelperHeader
         header('HTTP/1.0 401 Unauthorized');
     }
 
+    /**
+     * Establece el tipo de contenido en la cabecera HTTP.
+     *
+     * @param string $str El tipo de contenido a establecer. Los valores posibles son:
+     *                    - 'html': text/html
+     *                    - 'xhtml': text/xhtml+xml
+     *                    - 'css': text/css
+     *                    - 'javascript': text/javascript
+     *                    - 'jpeg': image/jpeg
+     *                    - 'svg': image/svg+xml
+     *                    - 'webp': image/webp
+     *                    - 'json': application/json
+     *                    - 'pdf': application/pdf
+     *                    - 'xml': application/xml
+     *                    - 'plain': text/plain
+     *
+     * @return void
+     */
     public static function setContentType($str)
     {
         switch ($str) {
