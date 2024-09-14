@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,12 +18,13 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperString
 {
     /**
-     * Convierte un string a mayúsculas.
-     * Es insensible a lo acéntos.
+     * Convierte una cadena de texto a mayúsculas.
      *
-     * @param string $txt
+     * Esta función utiliza `mb_strtoupper` si está disponible para manejar caracteres especiales.
+     * Si `mb_strtoupper` no está disponible, utiliza `strtoupper`.
      *
-     * @return string
+     * @param string $txt La cadena de texto a convertir.
+     * @return string La cadena de texto convertida a mayúsculas.
      */
     public static function toUpper($txt): string
     {
@@ -35,12 +36,13 @@ abstract class HelperString
     }
 
     /**
-     * Convierte un string a minúsculas.
-     * Es insensible a lo acéntos.
+     * Convierte una cadena de texto a minúsculas.
      *
-     * @param string $txt
+     * Esta función utiliza `mb_strtolower` si está disponible para manejar caracteres especiales.
+     * Si `mb_strtolower` no está disponible, utiliza `strtolower`.
      *
-     * @return string
+     * @param string $txt La cadena de texto a convertir.
+     * @return string La cadena de texto convertida a minúsculas.
      */
     public static function toLower($txt): string
     {
@@ -52,34 +54,30 @@ abstract class HelperString
     }
 
     /**
-     * Reemplaza sólo la primera ocurrencia de un string por otro.
-     * Es insensible a mayúsculas i minúsculas pero no a los acentos.
-     * Si no existe la ocurrencia, devuelve el mismo string
+     * Reemplaza la primera aparición de una subcadena en un texto.
      *
-     * @param string $txt
-     * @param string $origin
-     * @param string $destination
-     *
-     * @return string
+     * @param string $txt El texto en el que se realizará la búsqueda y reemplazo.
+     * @param string $origin La subcadena que se desea reemplazar.
+     * @param string $destination La subcadena con la que se reemplazará la subcadena original.
+     * @return string El texto resultante después de realizar el reemplazo.
      */
-    public static function replaceFirst($txt, $origin, $destination)
+    public static function replaceFirstOccurrence($txt, $origin, $destination): string
     {
-        $origin = '/' . preg_quote('' . $origin, '/') . '/i';
-
-        return '' . preg_replace($origin, '' . $destination, '' . $txt, 1);
+        $pos = strpos($txt, $origin);
+        if ($pos !== false) {
+            return substr_replace($txt, $destination, $pos, strlen($origin));
+        }
+        return $txt;
     }
 
     /**
-     * Reemplaza todas las ocurrencias.
-     * Es insensible a mayúsculas y minúsculas pero no a los acentos
-     * Devuelve el numero de ocurrencias sustiruidas
+     * Reemplaza todas las ocurrencias de una subcadena en un texto dado, sin distinguir entre mayúsculas y minúsculas.
      *
-     * @param string   $txt
-     * @param string   $origin
-     * @param string   $destination
-     * @param int|null $numSuccess
-     *
-     * @return string
+     * @param string $txt El texto en el que se realizarán las sustituciones.
+     * @param string $origin La subcadena que se desea reemplazar.
+     * @param string $destination La subcadena que reemplazará a la subcadena original.
+     * @param int|null $numSuccess (Opcional) Una variable pasada por referencia que contendrá el número de reemplazos realizados.
+     * @return string El texto resultante después de realizar todas las sustituciones.
      */
     public static function replaceAll($txt, $origin, $destination, &$numSuccess = null): string
     {
@@ -92,16 +90,13 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve la posición de la primera ocurrencia en un texto.
-     * Es indiferente a mayúsculas, minúsculas y acentos
-     * Se puede delimitar donde empezar a buscar.
-     * Devuelve -1 si no existe, siendo 0 la primera posición
+     * Encuentra la posición de la primera aparición de una subcadena en una cadena, 
+     * comenzando la búsqueda en una posición específica.
      *
-     * @param     $txt
-     * @param     $occurrence
-     * @param int $posStartSearch
-     *
-     * @return int
+     * @param string $txt La cadena en la que se buscará.
+     * @param string $occurrence La subcadena cuya posición se desea encontrar.
+     * @param int $posStartSearch La posición inicial desde donde comenzar la búsqueda. Por defecto es 0.
+     * @return int La posición de la primera aparición de la subcadena, o -1 si no se encuentra.
      */
     public static function indexOf($txt, $occurrence, $posStartSearch = 0): int
     {
@@ -115,16 +110,12 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve la posición de la última ocurrencia en un texto.
-     * Es indiferente a mayúsculas y minúsculas pero no a los acentos
-     * Se puede delimitar hasta donde buscar.
-     * Devuelve -1 si no existe, siendo 0 la primera posición
+     * Encuentra la última posición de una ocurrencia en una cadena de texto.
      *
-     * @param string $txt
-     * @param string $occurrence
-     * @param int    $posEndSearch
-     *
-     * @return int
+     * @param string $txt La cadena de texto en la que se buscará.
+     * @param string $occurrence La subcadena cuya última ocurrencia se desea encontrar.
+     * @param int $posEndSearch [opcional] La posición desde el final de la cadena donde se debe detener la búsqueda. Por defecto es 0.
+     * @return int La posición de la última ocurrencia de la subcadena en la cadena de texto, o -1 si no se encuentra.
      */
     public static function indexOfLast($txt, $occurrence, $posEndSearch = 0): int
     {
@@ -136,11 +127,10 @@ abstract class HelperString
     }
 
     /**
-     * Elimina los tabuladores, y saltos de línea
+     * Elimina caracteres de tabulación, retorno de carro y nueva línea de una cadena.
      *
-     * @param string $str
-     *
-     * @return string
+     * @param string $str La cadena a sanitizar.
+     * @return string La cadena sin caracteres de tabulación, retorno de carro y nueva línea.
      */
     public static function sanitizeTabReturn($str): string
     {
@@ -148,11 +138,14 @@ abstract class HelperString
     }
 
     /**
-     * Elimina los espacios en blanco innecesarios
+     * Elimina espacios en blanco adicionales de una cadena.
      *
-     * @param string $str
+     * Esta función toma una cadena de texto y reemplaza cualquier secuencia de 
+     * dos o más espacios en blanco con un solo espacio. Luego, elimina los 
+     * espacios en blanco al principio y al final de la cadena.
      *
-     * @return string
+     * @param string $str La cadena de texto a ser sanitizada.
+     * @return string La cadena de texto con los espacios en blanco adicionales eliminados.
      */
     public static function sanitizeBlanks($str): string
     {
@@ -160,14 +153,11 @@ abstract class HelperString
     }
 
     /**
-     * Elimina todas las letras con acentos, elimina caracteres no 
-     * alfanumericos
-     * puntos o subrayados, cambia el espacio en blanco por un guión 
-     * bajo
+     * Sanitiza una cadena de texto eliminando acentos, caracteres especiales y 
+     * caracteres no alfanuméricos.
      *
-     * @param string $txt
-     *
-     * @return string
+     * @param string $txt La cadena de texto a sanitizar.
+     * @return string La cadena de texto sanitizada.
      */
     public static function sanitizeAll($txt): string
     {
@@ -182,14 +172,11 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve la parte de la derecha despues de un texto delimitador
-     * que se busca desde la izquierda.
-     * No devuelve el delimitador
+     * Obtiene la parte de la cadena a la derecha del delimitador especificado.
      *
-     * @param $txt
-     * @param $delimiter
-     *
-     * @return string
+     * @param string $txt La cadena de texto completa.
+     * @param string $delimiter El delimitador a buscar dentro de la cadena.
+     * @return string La parte de la cadena que se encuentra a la derecha del delimitador.
      */
     public static function getRightStringBack($txt, $delimiter)
     {
@@ -207,13 +194,11 @@ abstract class HelperString
     }
 
     /**
-     * Devuevle la parte de la derecha después de un delimitador
-     * Busca el delimitador empezando desde la derecha
+     * Obtiene la subcadena a la derecha de un delimitador específico.
      *
-     * @param $txt
-     * @param $delimiter
-     *
-     * @return string
+     * @param string $txt El texto completo del cual se extraerá la subcadena.
+     * @param string $delimiter El delimitador que indica el punto de inicio de la subcadena.
+     * @return string La subcadena a la derecha del delimitador. Si el delimitador no se encuentra, retorna una cadena vacía.
      */
     public static function getRightString($txt, $delimiter): string
     {
@@ -233,13 +218,11 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve los N caracteres de de la derecha.
-     * Empieza a contar desde la derecha
+     * Obtiene una subcadena de la longitud especificada desde el final de la cadena original.
      *
-     * @param $str
-     * @param $len
-     *
-     * @return string
+     * @param string $str La cadena original de la cual se extraerá la subcadena.
+     * @param int $len La longitud de la subcadena que se desea obtener desde el final de la cadena original.
+     * @return string La subcadena obtenida desde el final de la cadena original. Si la longitud especificada es mayor que la longitud de la cadena original, se devuelve la cadena completa. Si ocurre un error en la extracción de la subcadena, se devuelve una cadena vacía.
      */
     public static function getRightNum($str, $len): string
     {
@@ -256,13 +239,12 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve los N caracteres después de un delimitador
+     * Obtiene una subcadena del texto dado, comenzando después del delimitador especificado y con la longitud especificada.
      *
-     * @param $txt
-     * @param $delimiter
-     * @param $len
-     *
-     * @return string
+     * @param string $txt El texto del cual se extraerá la subcadena.
+     * @param string $delimiter El delimitador que indica el punto de inicio para la subcadena.
+     * @param int $len La longitud de la subcadena a extraer.
+     * @return string La subcadena extraída o una cadena vacía si el delimitador no se encuentra en el texto o si ocurre un error.
      */
     public static function getMiddleString($txt, $delimiter, $len): string
     {
@@ -278,14 +260,12 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve los N caracteres después de una posición determinada 
-     * empezando por la izquierda
+     * Obtiene una subcadena de una cadena dada, comenzando en una posición específica y con una longitud determinada.
      *
-     * @param $txt
-     * @param $posStart
-     * @param $len
-     *
-     * @return string
+     * @param string $txt La cadena de la cual se extraerá la subcadena.
+     * @param int $posStart La posición inicial desde donde se comenzará a extraer la subcadena.
+     * @param int $len La longitud de la subcadena a extraer.
+     * @return string La subcadena extraída. Si ocurre un error, se devuelve una cadena vacía.
      */
     public static function getMiddleNum($txt, $posStart, $len): string
     {
@@ -297,12 +277,11 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve la parte de la izquierda hasta un texto delimitador
+     * Obtiene la parte izquierda de una cadena hasta el delimitador especificado.
      *
-     * @param $txt
-     * @param $delimiter
-     *
-     * @return string
+     * @param string $txt La cadena de texto de la cual se extraerá la parte izquierda.
+     * @param string $delimiter El delimitador que indica hasta dónde se extraerá la cadena.
+     * @return string La parte izquierda de la cadena hasta el delimitador, o una cadena vacía si el delimitador no se encuentra.
      */
     public static function getLeftString($txt, $delimiter): string
     {
@@ -318,14 +297,11 @@ abstract class HelperString
     }
 
     /**
-     * Empezando a contar desde la izquierda, devuelve la parte de la
-     * derecha
-     * despres de una longitud determinada
+     * Devuelve una subcadena desde una posición específica hasta el final de la cadena.
      *
-     * @param $txt
-     * @param $len
-     *
-     * @return string
+     * @param string $txt La cadena de texto original.
+     * @param int $len La posición desde donde se empezará a extraer la subcadena.
+     * @return string La subcadena extraída desde la posición especificada hasta el final de la cadena.
      */
     public static function getRightNumBack($txt, $len): string
     {
@@ -338,14 +314,11 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve el texto de la izquierda de una determinada longitud.
-     * Empieza a contar por la izquierda.
-     * Si no se puede obtener, devuelve un string vacío
+     * Empezando por la izquierda, devuelve la parte de la izquierda de una cadena de texto.
      *
-     * @param $txt
-     * @param $len
-     *
-     * @return string
+     * @param string $txt La cadena de texto de la cual se extraerá la parte izquierda.
+     * @param int $len La longitud de la parte izquierda que se desea obtener.
+     * @return string La parte izquierda de la cadena de texto especificada.
      */
     public static function getLeftNum($txt, $len): string
     {
@@ -359,11 +332,10 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve el último carácter de un string
+     * Obtiene el último carácter de una cadena de texto.
      *
-     * @param string $txt
-     *
-     * @return false|string
+     * @param string $txt La cadena de texto de la cual se obtendrá el último carácter.
+     * @return string El último carácter de la cadena de texto. Si la cadena está vacía, retorna una cadena vacía.
      */
     public static function getLastChar($txt): string
     {
@@ -374,16 +346,13 @@ abstract class HelperString
     }
 
     /**
-     * Devuelve el texto delimitado entre otros dos textos.
-     * Es case insensitive.
-     * Devuelve null si no encuentra.
-     * '' => No hay caracteres entre los delimitadores
+     * Obtiene la cadena de texto que se encuentra entre dos subcadenas especificadas.
      *
-     * @param $txt
-     * @param $strStart
-     * @param $strEnd
-     *
-     * @return string
+     * @param string $txt El texto completo del cual se extraerá la subcadena.
+     * @param string $strStart La subcadena que marca el inicio del texto a extraer.
+     * @param string $strEnd La subcadena que marca el final del texto a extraer.
+     * @return string|null La subcadena que se encuentra entre $strStart y $strEnd, 
+     *                     o null si $strStart no se encuentra en $txt.
      */
     public static function getBetween($txt, $strStart, $strEnd)
     {
@@ -404,14 +373,12 @@ abstract class HelperString
     }
 
     /**
-     * Rellena un texto por la derecha hasta un número determinado 
-     * mediante un caraácter
+     * Rellena una cadena a la derecha con un carácter especificado hasta alcanzar un tamaño dado.
      *
-     * @param $txt
-     * @param $size
-     * @param $charPad
-     *
-     * @return string
+     * @param string $txt La cadena de texto a rellenar.
+     * @param int $size El tamaño total deseado de la cadena después del relleno.
+     * @param string $charPad (Opcional) El carácter con el que se rellenará la cadena. Por defecto es una cadena vacía.
+     * @return string La cadena rellenada a la derecha con el carácter especificado.
      */
     public static function fillRight($txt, $size, $charPad = '')
     {
@@ -419,15 +386,12 @@ abstract class HelperString
     }
 
     /**
-     * Rellena un texto por la izquierda hasta un número determinado 
-     * mediante un caraácter
+     * Rellena una cadena a la izquierda con un carácter especificado hasta alcanzar un tamaño dado.
      *
-     * @param $txt
-     * @param $size
-     * @param $charPad
-     *
-     * @return string
-     * @since 20/09/2020
+     * @param string $txt La cadena de texto que se desea rellenar.
+     * @param int $size El tamaño total que debe tener la cadena después de rellenar.
+     * @param string $charPad (Opcional) El carácter con el que se rellenará la cadena. Por defecto es una cadena vacía.
+     * @return string La cadena rellenada a la izquierda con el carácter especificado.
      */
     public static function fillLeft($txt, $size, $charPad = '')
     {
@@ -435,11 +399,14 @@ abstract class HelperString
     }
 
     /**
-     * Elimian los acentos de un texto
+     * Elimina los acentos de una cadena dada.
      *
-     * @param $str
+     * Esta función toma una cadena de texto y reemplaza los caracteres acentuados
+     * con sus equivalentes sin acento. Funciona con caracteres en minúsculas y
+     * mayúsculas, así como con caracteres con diéresis y circunflejos.
      *
-     * @return string
+     * @param string $str La cadena de texto de la cual se eliminarán los acentos.
+     * @return string La cadena de texto sin acentos.
      */
     public static function removeAccents($str): string
     {
@@ -488,11 +455,10 @@ abstract class HelperString
     }
 
     /**
-     * Genera un string de caracteres random.
+     * Genera una cadena aleatoria de una longitud especificada.
      *
-     * @param integer $length
-     *
-     * @return string
+     * @param int $length La longitud de la cadena aleatoria a generar. Por defecto es 8.
+     * @return string La cadena aleatoria generada.
      */
     public static function random($length = 8)
     {
@@ -512,9 +478,12 @@ abstract class HelperString
     }
 
     /**
-     * Genera una clave aleatoria de 10 carcarteres.
-     * Letras y números.
-     * @return string
+     * Genera una clave única de 10 caracteres.
+     *
+     * Esta función crea una clave única utilizando `uniqid()` y `md5()`, 
+     * y luego toma los primeros 10 caracteres del resultado.
+     *
+     * @return string Una cadena de 10 caracteres que representa la clave única generada.
      */
     public static function createKey(): string
     {
@@ -522,8 +491,9 @@ abstract class HelperString
     }
 
     /**
-     * Devuevle un GUID válido.
-     * @return string
+     * Genera un GUID (Identificador Único Global) basado en la marca de tiempo actual.
+     *
+     * @return string El GUID generado.
      */
     public static function createGUID(): string
     {
@@ -554,10 +524,13 @@ abstract class HelperString
     }
 
     /**
-     * Asignar longitud
+     * Ajusta la longitud de una cadena GUID a un tamaño específico.
      *
-     * @param $string
-     * @param $length
+     * @param string &$string La cadena GUID que se va a ajustar.
+     * @param int $length La longitud deseada para la cadena GUID.
+     *
+     * Si la longitud de la cadena es menor que la longitud deseada, se rellena con ceros ('0') hasta alcanzar la longitud deseada.
+     * Si la longitud de la cadena es mayor que la longitud deseada, se trunca la cadena a la longitud deseada.
      */
     private static function guidSetLen(&$string, $length)
     {
@@ -572,11 +545,10 @@ abstract class HelperString
     }
 
     /**
-     * Crear sección
+     * Crea una sección de un GUID (Identificador Único Global) de la longitud especificada.
      *
-     * @param $len
-     *
-     * @return string
+     * @param int $len La longitud de la sección del GUID a generar.
+     * @return string Una cadena hexadecimal que representa la sección del GUID.
      */
     private static function guidCreateSection($len)
     {
@@ -588,18 +560,12 @@ abstract class HelperString
     }
 
     /**
-     * Separa un texto en un número de caracteres por línea
-     * Por defecto inserta al final de cada linea \n.
-     * Ex: "The quick brown fox jumped over the lazy dog."
-     *            The quick brown fox<br />
-     *             jumped over the lazy<br />
-     *             dog.
+     * Envuelve una cadena de texto a un número específico de caracteres utilizando un delimitador opcional.
      *
-     * @param string $txt
-     * @param int    $len
-     * @param string $break
-     *
-     * @return string
+     * @param string $txt El texto que se va a envolver.
+     * @param int $len El número de caracteres en el que se debe envolver el texto.
+     * @param string $break (Opcional) El delimitador que se utilizará para envolver el texto. Si no se proporciona, se utilizará el valor predeterminado.
+     * @return string El texto envuelto.
      */
     public static function wordWrap($txt, $len, $break = ''): string
     {
@@ -611,14 +577,12 @@ abstract class HelperString
     }
 
     /**
-     * Trunca un string a un número determinado de caracteres.
-     * No recorta añade un string al final.
+     * Trunca una cadena de texto a una longitud específica y agrega un relleno si es necesario.
      *
-     * @param        $txt
-     * @param        $len
-     * @param string $fill
-     *
-     * @return string
+     * @param string $txt La cadena de texto a truncar.
+     * @param int $len La longitud máxima de la cadena truncada.
+     * @param string $fill (Opcional) El texto de relleno que se agregará al final de la cadena truncada. Por defecto es '...'.
+     * @return string La cadena truncada con el relleno agregado si es necesario.
      */
     public static function truncate($txt, $len, $fill = '...'): string
     {
@@ -632,13 +596,11 @@ abstract class HelperString
     }
 
     /**
-     * Elimina los tags html de un texto.
-     * Se puede indicar que tags no ha de eliminar
+     * Elimina las etiquetas HTML de un texto dado.
      *
-     * @param string      $txt
-     * @param string|null $tagsDontRemove
-     *
-     * @return string
+     * @param string $txt El texto del cual se eliminarán las etiquetas HTML.
+     * @param string|null $tagsDontRemove Una lista opcional de etiquetas HTML que no se deben eliminar.
+     * @return string El texto sin las etiquetas HTML especificadas.
      */
     public static function removeHtmlTags($txt, $tagsDontRemove = null)
     {
