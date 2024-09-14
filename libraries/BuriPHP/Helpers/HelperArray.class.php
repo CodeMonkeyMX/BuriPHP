@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -17,39 +17,20 @@ namespace Libraries\BuriPHP\Helpers;
 
 abstract class HelperArray
 {
-
     /**
-     * Ordena un array por los valores de forma natural. 
-     * Se pierden las claves.
-     * Devuelve un array con los valores ordenados
+     * Ordena un array multidimensional basado en múltiples campos.
      *
-     * @param array $arr
-     * @param bool  $ascendent
+     * Esta función toma un número variable de argumentos. El primer argumento es el array
+     * multidimensional que se desea ordenar. Los argumentos subsecuentes son los nombres
+     * de los campos por los cuales se desea ordenar el array.
      *
-     * @return array
-     */
-    public static function sortNatural($arr, $ascendent = true)
-    {
-        $array_tmp = HelperConvert::toArray($arr);
-
-        usort($array_tmp, "strnatcmp");
-
-        if (!$ascendent) {
-            $array_tmp = array_reverse($array_tmp);
-        }
-
-        return $array_tmp;
-    }
-
-    /**
-     * Devuelve un array ordendo por las columna 
-     * o columnas que queramos
-     * @return mixed
+     * @return array El array ordenado.
      */
     function sortMultiValue()
     {
         $args = func_get_args();
         $data = array_shift($args);
+
         foreach ($args as $n => $field) {
             if (is_string($field)) {
                 $tmp = array();
@@ -59,166 +40,114 @@ abstract class HelperArray
                 $args[$n] = $tmp;
             }
         }
+
         $args[] = &$data;
         call_user_func_array('sortMultiValue', $args);
+
         return array_pop($args);
     }
 
-
     /**
-     * Ordena los valores de un array, se mantienen las claves.
-     * Devuelve un array ordenado.
+     * Ordena un array en orden ascendente o descendente.
      *
-     * @param array $arr
-     * @param bool  $ascendent
-     *
-     * @return array
+     * @param array $arr El array a ordenar.
+     * @param string $order El orden de la ordenación, puede ser 'ASC' para ascendente o 'DESC' para descendente. 
+     *                      El valor predeterminado es 'ASC'.
+     * @return array El array ordenado.
      */
-    public static function sort($arr, $ascendent = true)
+    public static function sort($arr, $order = 'ASC')
     {
         $arrayTmp = HelperConvert::toArray($arr);
-        if ($ascendent) {
-            asort($arrayTmp);
-        } else {
-            arsort($arrayTmp);
+
+        switch (strtoupper($order)) {
+            default:
+            case 'ASC':
+                asort($arrayTmp);
+                break;
+
+            case 'DESC':
+                arsort($arrayTmp);
+                break;
         }
+
         return $arrayTmp;
     }
 
     /**
-     * Elimina el primer valor de una instancia del array.
-     * Devuelve un array sin el valor eliminado.
-     * Si algún valor esta vacío o no es un array, 
-     * este se convierte a un array.
+     * Elimina la primera ocurrencia de un valor específico de un array.
      *
-     * @param array $arr
-     * @param       $val
-     *
-     * @return array
+     * @param array $arr El array del cual se eliminará el valor.
+     * @param mixed $val El valor que se eliminará del array.
+     * @return array El array resultante después de eliminar la primera ocurrencia del valor especificado.
      */
     public static function removeValueFirst($arr, $val)
     {
-        $arrayTmp  = [];
+        $arrayTmp = [];
         $found = false;
 
         foreach (HelperConvert::toArray($arr) as $key => $value) {
-
-            if ($value == $val && !$found) {
+            if (!$found && $value == $val) {
                 $found = true;
-            } else {
-                $arrayTmp[$key] = $value;
+                continue;
             }
+            $arrayTmp[$key] = $value;
         }
+
         return $arrayTmp;
     }
 
     /**
-     * Elimina todos los valores del array de una instancia.
-     * Devuelve un array sin los valores eliminados.
+     * Elimina todas las ocurrencias de un valor específico de un array.
      *
-     * @param array $arr
-     * @param       $sStr
-     *
-     * @return array
+     * @param array $arr El array del cual se eliminarán los valores.
+     * @param mixed $sStr El valor que se eliminará del array.
+     * @return array El array resultante después de eliminar las ocurrencias del valor especificado.
      */
     public static function removeValueAll($arr, $sStr)
     {
-        $arrayTmp = [];
-
-        foreach (HelperConvert::toArray($arr) as $key => $value) {
-
-            if ($value != $sStr) {
-                $arrayTmp[$key] = $value;
-            }
-        }
-        return $arrayTmp;
+        return array_filter(HelperConvert::toArray($arr), function ($value) use ($sStr) {
+            return $value !== $sStr;
+        });
     }
 
     /**
-     * Elimina una posición determinada del array.
-     * Devuelve una array sin el valor eliminado.
-     * Si algún valor esta vacío o no es un array, 
-     * este se convierte a un array.
+     * Elimina un elemento de un array en una posición específica.
      *
-     * @param array $arr
-     * @param int   $pos
-     *
-     * @return array
+     * @param array $arr El array del cual se eliminará el elemento.
+     * @param int $pos La posición del elemento que se desea eliminar.
+     * @return array El array resultante después de eliminar el elemento en la posición especificada.
      */
-    public static function removePos($arr, $pos)
+    public static function removeByPosition($arr, $pos)
     {
-        $n = 0;
-
-        $arrayTmp = [];
-        foreach (HelperConvert::toArray($arr) as $key => $value) {
-            if ($pos != $n) {
-                $arrayTmp[$key] = $value;
-            }
-            $n++;
+        if (!is_array($arr) || $pos < 0 || $pos >= count($arr)) {
+            return $arr;
         }
-        return $arrayTmp;
-    }
 
-    /**
-     * Devuelve un array sin el último valor del array.
-     *
-     * @param array $arr
-     *
-     * @return array
-     */
-    public static function removeLast($arr)
-    {
-        $arr = HelperConvert::toArray($arr);
-        array_pop($arr);
+        array_splice($arr, $pos, 1);
         return $arr;
     }
 
     /**
-     * Devuelve un array donde se ha eliminado una clave y su valor.
-     * El array original no se modifica.
-     * Si algún valor esta vacío o no es un array,
-     * este se convierte a un array.
-     * Si la cale no se encuentra, devuelve el mismo array
+     * Elimina una clave específica de un array.
      *
-     * @param $arr
-     * @param $deleteKey
-     *
-     * @return array
+     * @param array $arr El array del cual se eliminará la clave.
+     * @param mixed $deleteKey La clave que se desea eliminar del array.
+     * @return array El array resultante después de eliminar la clave especificada.
      */
     public static function removeKey($arr, $deleteKey)
     {
-        $arrayTmp  = [];
-        $found = false;
-        foreach (HelperConvert::toArray($arr) as $key => $valor) {
-            if ($key == $deleteKey && !$found) {
-                $found = true;
-            } else {
-                $arrayTmp[$key] = $valor;
-            }
+        if (array_key_exists($deleteKey, HelperConvert::toArray($arr))) {
+            unset($arr[$deleteKey]);
         }
-        return $arrayTmp;
+
+        return $arr;
     }
 
     /**
-     * Devuelve y elimina el primer valor del array
+     * Elimina los elementos duplicados de un array.
      *
-     * @param array $arr
-     *
-     * @return mixed
-     */
-    public static function removeFirst(&$arr)
-    {
-        return array_shift($arr);
-    }
-
-    /**
-     * Devuelve un array sin duplicados.
-     * Si algún valor esta vacío o no es un array,
-     * este se convierte a un array.
-     *
-     * @param array $arr
-     *
-     * @return array
+     * @param array $arr El array del cual se eliminarán los duplicados.
+     * @return array Un array sin elementos duplicados.
      */
     public static function removeDuplicates($arr)
     {
@@ -226,30 +155,28 @@ abstract class HelperArray
     }
 
     /**
-     * Transforma un array en un string separados por un separador.
-     * Por defecto el separador es la coma (,).
+     * Une los valores de un array en una cadena, separados por un delimitador especificado.
      *
-     * @param array  $arr
-     * @param string $separador
-     *
-     * @return string
+     * @param array|string $arr El array o cadena a unir.
+     * @param string $separador El delimitador que se utilizará para separar los valores. Por defecto es una coma (,).
+     * @return string La cadena resultante con los valores unidos por el delimitador.
      */
     public static function joinValues($arr, $separador = ',')
     {
         return join($separador, HelperConvert::toArray($arr));
     }
 
-
     /**
-     * Devuelve la posición que ocupa un valor de un array 
-     * o -1 si no existe.
-     * Si algún valor esta vacío o no es un array, 
-     * este se convierte a un array.
+     * Encuentra el índice de un valor en un array.
      *
-     * @param array $arr
-     * @param mixed $value
+     * Esta función busca el índice de un valor específico en un array. 
+     * La búsqueda es sensible a mayúsculas y minúsculas, por lo que 
+     * convierte todos los valores del array a minúsculas antes de 
+     * realizar la comparación.
      *
-     * @return int
+     * @param array|string $arr El array o cadena que se convertirá a array.
+     * @param string $value El valor que se busca en el array.
+     * @return int El índice del valor en el array, o -1 si no se encuentra.
      */
     public static function indexOfValue($arr, $value)
     {
@@ -270,129 +197,104 @@ abstract class HelperArray
         if (false === $pos) {
             return -1;
         }
+
         return $pos;
     }
 
     /**
-     * Devuelve la posición que ocupa una clave o -1 
-     * si no la encuentra.
-     * Si algún valor esta vacío o no es un array, 
-     * este se convierte a un array.
+     * Encuentra el índice de una clave específica en un arreglo.
      *
-     * @param array $arr
-     * @param mixed $key
-     *
-     * @return int
+     * @param array $arr El arreglo en el cual buscar la clave.
+     * @param mixed $key La clave que se desea encontrar.
+     * @return int El índice de la clave en el arreglo, o -1 si la clave no se encuentra.
      */
     public static function indexOfKey($arr, $key)
     {
-        $n = 0;
-        foreach (HelperConvert::toArray($arr) as $key_tmp => $value) {
-            if (HelperValidate::areEquals($key_tmp, $key)) {
-                return $n;
-            }
-            $n++;
+        $arr = HelperConvert::toArray($arr);
+        if (count($arr) == 0) {
+            return -1;
         }
-        return -1;
-    }
-
-    /**
-     * Devuelve el valor de la posición secuencial determinada 
-     * o un valor por defecto so no existe.
-     * Si algún valor esta vacío o no es un array, 
-     * este se convierte a un array.
-     *
-     * @param array  $arr
-     * @param int    $pos
-     * @param string $default
-     *
-     * @return mixed
-     */
-    public static function getValueByPos($arr, $pos, $default = '')
-    {
-        $n = 0;
-        foreach (HelperConvert::toArray($arr) as $value) {
-            if ($n == $pos) {
-                return $value;
-            }
-            $n++;
-        }
-        return $default;
-    }
-
-    /**
-     * Devuelve el valor de una clave.
-     * Si el parámetro no es un array, se convierte a array.
-     * La clave es independiente de maýusculas, minúsculas y acentos.
-     *
-     * @param array $arr
-     * @param mixed $key
-     *
-     * @return mixed
-     */
-    public static function getValueByKey($arr, $key)
-    {
-        $arrTmp = HelperConvert::toArray($arr);
 
         $key = HelperString::toLower(HelperString::removeAccents($key));
 
-        // Como la función array_key_exists es 
-        // sensitiva a mayúsculas i minúsculas
-        // hacemos una copia de array poniendo las 
-        // claves en minúsculas
-        // la comparación se hace en minúsculas.
         $arrayCopy = array_map(function ($val) {
-            $val = HelperString::removeAccents($val);
-            return HelperString::toLower($val);
-        }, array_keys($arrTmp));
+            return HelperString::toLower(HelperString::removeAccents($val));
+        }, array_keys($arr));
 
-        /* Si existe, tenemos su posición dentro del array */
         $pos = array_search($key, $arrayCopy);
         if ($pos === false) {
-            return null;
+            return -1;
         }
 
-        /* Obtenemos un array de un sólo valor, que es 
-        el que nos interesa */
-        $arrSingle = array_slice($arrTmp, $pos, 1);
-
-        /* Devolvemos su valor */
-        return $arrSingle[array_keys($arrSingle)[0]];
+        return $pos;
     }
 
     /**
-     * Devuelve una parte del array entre dos posiciones.
-     * Si algún valor esta vacío o no es un array, 
-     * este se convierte a un array.
+     * Obtiene el valor de un arreglo en una posición específica.
      *
-     * @param array $arr
-     * @param int   $pos_inicio
-     * @param int   $pos_fin
-     *
-     * @return array
+     * @param array $arr El arreglo del cual se obtendrá el valor.
+     * @param int $pos La posición del valor que se desea obtener.
+     * @param mixed $default Valor por defecto a retornar si la posición no existe en el arreglo.
+     * @return mixed El valor en la posición especificada del arreglo, o el valor por defecto si la posición no existe.
      */
-    public static function getSubArray($arr, $pos_inicio, $pos_fin)
+    public static function getValueByPosition($arr, $pos, $default = null)
     {
-        return array_slice(
-            HelperConvert::toArray($arr),
-            $pos_inicio,
-            $pos_fin
-        );
+        $arr = HelperConvert::toArray($arr);
+        return isset($arr[$pos]) ? $arr[$pos] : $default;
     }
 
     /**
-     * Devuelve el número de niveles de un array. Función recursiva.
-     * Si el parámetro no es un array, devuelve cero.
+     * Obtiene el valor de un arreglo asociativo dado una clave específica.
      *
-     * @param array $array
-     * @param int   $niveles
-     * @param array $current_array
+     * Convierte el arreglo a un formato adecuado y normaliza la clave
+     * eliminando acentos y convirtiéndola a minúsculas para realizar una
+     * comparación insensible a mayúsculas y minúsculas.
      *
-     * @return int
+     * @param array|string $arr El arreglo asociativo o una representación
+     *                          que puede ser convertida a un arreglo.
+     * @param string $key La clave cuyo valor se desea obtener.
+     * @return mixed El valor asociado a la clave especificada, o null si
+     *               la clave no se encuentra en el arreglo.
+     */
+    public static function getValueByKey($arr, $key)
+    {
+        $arr = HelperConvert::toArray($arr);
+        $key = HelperString::toLower(HelperString::removeAccents($key));
+
+        foreach ($arr as $k => $v) {
+            if (HelperString::toLower(HelperString::removeAccents($k)) == $key) {
+                return $v;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Obtiene una submatriz de un arreglo dado.
+     *
+     * @param array $arr El arreglo del cual se extraerá la submatriz.
+     * @param int $posStart La posición inicial desde donde se comenzará a extraer.
+     * @param int $posEnd La posición final hasta donde se extraerá.
+     * @return array La submatriz extraída del arreglo original.
+     */
+    public static function getSubArray($arr, $posStart, $posEnd)
+    {
+        return array_slice(HelperConvert::toArray($arr), $posStart, $posEnd);
+    }
+
+    /**
+     * Obtiene el nivel de profundidad de un array multidimensional.
+     *
+     * @param array $array El array del cual se quiere obtener el nivel de profundidad.
+     * @param int $niveles (Opcional) El nivel actual de profundidad, por defecto es -1.
+     * @param array $current_array (Opcional) Array auxiliar para el cálculo de niveles, por defecto es un array vacío.
+     * @return int El nivel de profundidad del array.
      */
     public static function getLevels($array, $niveles = -1, $current_array = [])
     {
         $niveles++;
+
         if (is_array($array)) {
             foreach ($array as $key => $value) {
                 $current_array[] = self::getLevels($value, $niveles);
@@ -400,47 +302,42 @@ abstract class HelperArray
         } else {
             return $niveles;
         }
+
         foreach ($current_array as $value) {
             $niveles = $value > $niveles ? $value : $niveles;
         }
+
         return $niveles;
     }
 
     /**
-     * Devuelve y elimina el último valor del array.
-     * El array pasado al la función queda modificado.
+     * Devuelve el primer elemento de un arreglo.
      *
-     * @param array $arr
-     *
-     * @return mixed
+     * @param array $arr El arreglo del cual se obtendrá el primer elemento.
+     * @return mixed El primer elemento del arreglo, o null si el arreglo está vacío.
      */
-    public static function getLastAndRemove(&$arr)
+    public static function getFirstValue($arr)
+    {
+        return reset(HelperConvert::toArray($arr));
+    }
+
+    /**
+     * Devuelve el último valor de un arreglo.
+     *
+     * @param array $arr El arreglo del cual se obtendrá el último valor.
+     * @return mixed El último valor del arreglo, o null si el arreglo está vacío.
+     */
+    public static function getLastValue($arr)
     {
         $arr = HelperConvert::toArray($arr);
         return array_pop($arr);
     }
 
     /**
-     * Devuelve el último valor del array.
-     * El array pasado al la función queda modificado.
+     * Obtiene las claves de un array.
      *
-     * @param array $arr
-     *
-     * @return mixed
-     */
-    public static function getLast($arr)
-    {
-        $arr = HelperConvert::toArray($arr);
-        return array_pop($arr);
-    }
-
-    /**
-     * Devuelve un array con todas las claves.
-     * Si es null o no es un array, devuelve un array vacío.
-     *
-     * @param array $arr
-     *
-     * @return array
+     * @param array $arr El array del cual se obtendrán las claves.
+     * @return array Un array con las claves del array dado. Si el parámetro no es un array, se devuelve un array vacío.
      */
     public static function getKeys($arr)
     {
@@ -448,18 +345,16 @@ abstract class HelperArray
         if (!is_array($arr)) {
             return [];
         }
+
         return array_keys($arr);
     }
 
     /**
-     * Indica si un valor existe en un array.
-     * Se comprueba que al parámetro sea un array.
-     * Es independiente de maýusculas y minúsculas pero no acentuadas
+     * Verifica si un valor existe en un array, sin distinguir entre mayúsculas y minúsculas.
      *
-     * @param array $arr
-     * @param mixed $value
-     *
-     * @return bool
+     * @param array $arr El array en el que se buscará el valor.
+     * @param string $value El valor a buscar en el array.
+     * @return bool Devuelve true si el valor existe en el array, false en caso contrario.
      */
     public static function existsValue($arr, $value)
     {
@@ -482,14 +377,11 @@ abstract class HelperArray
     }
 
     /**
-     * Indica si una clave existe en un array.
-     * Se comprueba que al parámetro sea un array.
-     * Es independiente de maýusculas, minúsculas y acentuadas
+     * Verifica si una clave existe en un array, ignorando acentos y mayúsculas/minúsculas.
      *
-     * @param array $arr
-     * @param mixed $key
-     *
-     * @return bool
+     * @param array $arr El array en el que se buscará la clave.
+     * @param string $key La clave que se desea buscar en el array.
+     * @return bool Devuelve true si la clave existe en el array, false en caso contrario.
      */
     public static function existsKey($arr, $key)
     {
@@ -497,6 +389,7 @@ abstract class HelperArray
         if (!is_array($arr)) {
             return false;
         }
+
         $key = HelperString::removeAccents($key);
         $key = HelperString::toLower($key);
 
@@ -515,53 +408,38 @@ abstract class HelperArray
     }
 
     /**
-     * Devuelve todos los claves/valores del array 1 que NO están 
-     * en las claves del otro array.
-     * Si algún valor esta vacío o no es un array, este se 
-     * convierte a un array.
+     * Compara dos arrays y devuelve los valores en el primer array que no están presentes en el segundo array.
      *
-     * @param $arr1
-     * @param $arr2
-     *
-     * @return array
+     * @param array $arr1 El primer array a comparar.
+     * @param array $arr2 El segundo array a comparar.
+     * @return array Un array que contiene todos los valores del primer array que no están presentes en el segundo array.
      */
     public static function dif($arr1, $arr2)
     {
-        return array_diff(
-            HelperConvert::toArray($arr1),
-            HelperConvert::toArray($arr2)
-        );
+        return array_diff(HelperConvert::toArray($arr1), HelperConvert::toArray($arr2));
     }
 
     /**
-     * Elimina toda una columna por si posición de un array. 
-     * (0 es la primera)
+     * Elimina una columna de un array bidimensional en la posición especificada.
      *
-     * @param $array
-     * @param $position
-     *
-     * @return mixed
+     * @param array $array El array bidimensional del cual se eliminará la columna.
+     * @param int $position La posición de la columna que se eliminará.
+     * @return array El array modificado con la columna eliminada.
      */
     public static function deleteColumnByPosition($array, $position)
     {
-        array_walk(
-            $array,
-            function (&$arr) use ($position) {
-                array_splice($arr, $position, 1);
-            }
-        );
+        array_walk($array, function (&$arr) use ($position) {
+            array_splice($arr, $position, 1);
+        });
 
         return $array;
     }
 
     /**
-     * Devuelve un array sin valores vacíos (null, '').
-     * Si el valor está vació, de vuelve un array vació, y si no 
-     * es  un array, lo convierte a un array.
+     * Compacta un arreglo eliminando los elementos vacíos.
      *
-     * @param $arr
-     *
-     * @return array
+     * @param array $arr El arreglo a compactar.
+     * @return array El arreglo compactado sin elementos vacíos.
      */
     public static function compact($arr)
     {
@@ -575,56 +453,37 @@ abstract class HelperArray
                 $arrayTmp[] = $value;
             }
         }
+
         return $arrayTmp;
     }
 
     /**
-     * Combina los valores del primer array como las claves con los
-     * valores del segundo array.
-     * Si algún valor esta vacío o no es un array, este se convierte 
-     * a un array.
+     * Combina dos arreglos, uno de claves y otro de valores, en un solo arreglo asociativo.
      *
-     * @param array $arrayKeys
-     * @param array $arrayValues
-     *
-     * @return array
+     * @param array $arrayKeys Arreglo de claves.
+     * @param array $arrayValues Arreglo de valores.
+     * @return array Arreglo asociativo resultante de combinar las claves y los valores.
      */
     public static function combineKeysValue($arrayKeys, $arrayValues)
     {
-        return array_combine(
-            HelperConvert::toArray($arrayKeys),
-            HelperConvert::toArray($arrayValues)
-        );
+        return array_combine(HelperConvert::toArray($arrayKeys), HelperConvert::toArray($arrayValues));
     }
 
     /**
-     * Combina dos array.
-     * Devuelve un array.
+     * Combina dos arreglos en uno solo.
      *
-     * @param array $arr1
-     * @param array $arr2
+     * Esta función toma dos arreglos, los convierte a arreglos si no lo son,
+     * y luego los combina en un solo arreglo utilizando array_merge.
      *
-     * @return array
+     * @param mixed $arr1 El primer arreglo o valor a combinar.
+     * @param mixed $arr2 El segundo arreglo o valor a combinar.
+     * @return array El arreglo combinado resultante.
      */
     public static function combine($arr1, $arr2)
     {
-        return array_merge(
-            HelperConvert::toArray($arr1),
-            HelperConvert::toArray($arr2)
-        );
+        return array_merge(HelperConvert::toArray($arr1), HelperConvert::toArray($arr2));
     }
 
-    /**
-     * Inserta una valor en una posición determianda de un array.
-     * La primera posición es la 0 y ha de ser numérico.
-     * Los indices no tienen porque ser numéricos
-     *
-     * @param array $arr
-     * @param int   $pos
-     * @param mixed $value
-     *
-     * @return array
-     */
     public static function pushToPos($arr, $pos, $value)
     {
         array_splice($arr, $pos, 0, [$value]);
@@ -632,14 +491,14 @@ abstract class HelperArray
     }
 
     /**
-     * Añade un valor al inicio del array.
-     * Devuelve un nuevo array con el valor insertado, no modifica 
-     * el original.
+     * Inseta en el inicio un valor a un array.
      *
-     * @param array $arr
-     * @param mixed $value
+     * Este método toma un array y un valor, y añade el valor en la primera posición del array.
+     * Si el primer parámetro no es un array, se convierte a un array antes de añadir el valor.
      *
-     * @return array
+     * @param mixed $arr El array al que se le añadirá el valor. Si no es un array, se convertirá a uno.
+     * @param mixed $value El valor que se añadirá en la primera posición del array.
+     * @return array El array con el valor añadido en la primera posición.
      */
     public static function prepend($arr, $value)
     {
@@ -653,14 +512,11 @@ abstract class HelperArray
     }
 
     /**
-     * Añade un  valor al final del array.
-     * Devuelve un nuevo array con el valor insertado, no modifica 
-     * el original.
+     * Añade un valor al final de un array.
      *
-     * @param array $arr
-     * @param mixed $value
-     *
-     * @return array
+     * @param mixed $arr El array al que se le añadirá el valor. Si no es un array, se convertirá en uno.
+     * @param mixed $value El valor que se añadirá al final del array.
+     * @return array El array con el valor añadido al final.
      */
     public static function append($arr, $value)
     {
@@ -674,61 +530,50 @@ abstract class HelperArray
     }
 
     /**
-     * Deveulve sólo los valores del array1 que estan en los valores 
-     * del otro array.
-     * No devuelve ni compara claves.
-     * Si algún valor esta vacío o no es un array, este se convierte a 
-     * un array.
+     * Devuelve la intersección de dos arrays basándose en sus valores.
      *
-     * @param array $arr1
-     * @param array $arr2
+     * Esta función toma dos arrays como entrada y devuelve un array que contiene
+     * los valores que están presentes en ambos arrays.
      *
-     * @return array
+     * @param array $arr1 El primer array de entrada.
+     * @param array $arr2 El segundo array de entrada.
+     * @return array Un array que contiene los valores que están presentes en ambos arrays.
      */
     public static function intersectionByValue($arr1, $arr2)
     {
-        return array_intersect(
-            HelperConvert::toArray($arr1),
-            HelperConvert::toArray($arr2)
-        );
+        return array_intersect(HelperConvert::toArray($arr1), HelperConvert::toArray($arr2));
     }
 
     /**
-     * Devuelve sólo las claves/valores del array1 que están en las
-     * claves/valores del otro array.
-     * Si algún valor esta vacío o no es un array, este se convierte a
-     * un array.
+     * Encuentra la intersección de dos arrays por clave y valor.
      *
-     * @param array $arr1
-     * @param array $arr2
+     * Esta función toma dos arrays, los convierte a arrays utilizando el método
+     * HelperConvert::toArray y luego encuentra la intersección de los arrays
+     * resultantes, comparando tanto las claves como los valores.
      *
-     * @return array
+     * @param array $arr1 El primer array a comparar.
+     * @param array $arr2 El segundo array a comparar.
+     * @return array Un array que contiene todas las entradas de $arr1 que tienen
+     *               claves y valores coincidentes en $arr2.
      */
     public static function intersectionByKeyValue($arr1, $arr2)
     {
-        return array_intersect_assoc(
-            HelperConvert::toArray($arr1),
-            HelperConvert::toArray($arr2)
-        );
+        return array_intersect_assoc(HelperConvert::toArray($arr1), HelperConvert::toArray($arr2));
     }
 
     /**
-     * Deveulve sólo las claves/valores del array1 que están en las 
-     * claves del otro array.
-     * No compaa en los valores del seguno array.
-     * Si algún valor esta vacío o no es un array, este se convierte a 
-     * un array.
+     * Encuentra la intersección de dos arrays basándose en sus claves.
      *
-     * @param array $arr1
-     * @param array $arr2
+     * Esta función toma dos arrays, los convierte a arrays utilizando el método
+     * HelperConvert::toArray y luego devuelve un array que contiene todas las claves
+     * que están presentes en ambos arrays.
      *
-     * @return array
+     * @param array $arr1 El primer array.
+     * @param array $arr2 El segundo array.
+     * @return array Un array que contiene todas las claves que están presentes en ambos arrays.
      */
     public static function intersectionByKey($arr1, $arr2)
     {
-        return array_intersect_key(
-            HelperConvert::toArray($arr1),
-            HelperConvert::toArray($arr2)
-        );
+        return array_intersect_key(HelperConvert::toArray($arr1), HelperConvert::toArray($arr2));
     }
 }
