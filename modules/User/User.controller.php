@@ -9,7 +9,7 @@ class User extends Controller
 {
     public function create()
     {
-        $request = $this->getPost();
+        $request = $this->getPayload();
 
         $response = $this->service->create($request);
 

@@ -9,7 +9,7 @@ class Register extends Controller
 {
     public function register()
     {
-        $request = $this->getPost();
+        $request = $this->getPayload();
 
         if (isset($this->getGet()['redirect']) && !empty($this->getGet()['redirect'])) {
             $request['redirect'] = $this->getGet()['redirect'];
