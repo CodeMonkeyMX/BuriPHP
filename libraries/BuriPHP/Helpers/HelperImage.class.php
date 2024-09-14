@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,22 +18,16 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperImage
 {
     /**
-     * Crea una miniatura de un aimagen en función a una proporción
-     * indicada.
-     * Se puede modificar la calidade de la miniatura.
-     * Devuelve true si se ha generado la miniatura o false en otro 
-     * caso
+     * Genera una miniatura de una imagen dada.
      *
-     * @param     $filename
-     * @param     $nameThumbnail
-     * @param     $proportion
-     * @param int $quality
-     *
-     * @return bool
+     * @param string $filename Ruta del archivo de la imagen original.
+     * @param string $nameThumbnail Nombre del archivo de la miniatura generada.
+     * @param float $proportion Proporción de reducción de la imagen original.
+     * @param int $quality Calidad de la miniatura generada (por defecto 75).
+     * @return bool Devuelve true si la miniatura se genera correctamente, false en caso contrario.
      */
     public static function generateThumbnail($filename, $nameThumbnail, $proportion, $quality = 75)
     {
-        // Al archivo ha de existir
         if (!file_exists($filename)) {
             return false;
         }
