@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 2.0
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,38 +18,53 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperDevice
 {
     /**
-     * Devuelve el sistema opeativo del cliente
-     * @return string
+     * Obtiene el sistema operativo (SO) del agente de usuario.
+     *
+     * Este método analiza la cadena del agente de usuario (User-Agent) para determinar
+     * el sistema operativo del cliente. Devuelve 'Linux', 'MacOS', 'Windows' u 'Otro'
+     * dependiendo del sistema operativo detectado.
+     *
+     * @return string El nombre del sistema operativo detectado.
      */
-    public static function getSO()
+    public static function getSOFromUserAgent()
     {
-        $userAgent = HelperString::toLower(
-            HelperServer::getValue('HTTP_USER_AGENT')
-        );
+        $userAgent = HelperString::toLower(HelperServer::getValue('HTTP_USER_AGENT'));
 
         if (preg_match('/linux/i', $userAgent)) {
-            $platform = 'Linux';
+            return 'Linux';
         } elseif (preg_match('/macintosh|mac os x/i', $userAgent)) {
-            $platform = 'MacOS';
+            return 'MacOS';
         } elseif (preg_match('/windows|win32/i', $userAgent)) {
-            $platform = 'Windows';
+            return 'Windows';
         } else {
-            $platform = 'Otro';
+            return 'Otro';
         }
-
-        return $platform;
     }
 
     /**
-     * Función que devuelve el nombre del navegador utilizado por el 
-     * cliente
-     * @return string
+     * Obtiene el nombre del navegador basado en el agente de usuario.
+     *
+     * Este método analiza la cadena del agente de usuario (user agent) para determinar
+     * el nombre del navegador o dispositivo que realiza la solicitud.
+     *
+     * @return string El nombre del navegador o dispositivo detectado. Puede ser uno de los siguientes:
+     *                - 'Opera'
+     *                - 'Edge'
+     *                - 'Chrome'
+     *                - 'Safari'
+     *                - 'Firefox'
+     *                - 'IE' (Internet Explorer)
+     *                - 'iPod'
+     *                - 'iPhone'
+     *                - 'iPad'
+     *                - 'Android'
+     *                - 'WebOS'
+     *                - 'Blackberry'
+     *                - 'Otro' (si no se detecta ningún navegador o dispositivo conocido)
      */
-    public static function getNavigator()
+    public static function getBrowserName()
     {
-        $userAgent = HelperString::toLower(
-            HelperServer::getValue('HTTP_USER_AGENT')
-        );
+        $userAgent = HelperString::toLower(HelperServer::getValue('HTTP_USER_AGENT'));
 
         if (strpos($userAgent, 'opera') || strpos($userAgent, 'opr/')) {
             return 'Opera';
@@ -84,13 +99,18 @@ abstract class HelperDevice
     }
 
     /**
-     * Devuelve la ip del cliente o null si no puede detectarla
+     * Obtiene la dirección IP real del cliente.
      *
-     * @return string
+     * Este método verifica varias cabeceras HTTP para determinar la dirección IP real del cliente,
+     * incluyendo soporte para proxies y servicios como Cloudflare.
+     *
+     * @return string|null La dirección IP real del cliente, o null si no se puede determinar.
      */
-    public static function getIp()
+    public static function getRealIp()
     {
-        foreach (array(
+        $ipKeys = [
+            'HTTP_CF_CONNECTING_IP', // Cloudflare
+            'HTTP_X_REAL_IP',
             'HTTP_CLIENT_IP',
             'HTTP_X_FORWARDED_FOR',
             'HTTP_X_FORWARDED',
@@ -98,79 +118,44 @@ abstract class HelperDevice
             'HTTP_FORWARDED_FOR',
             'HTTP_FORWARDED',
             'REMOTE_ADDR'
-        ) as $key) {
+        ];
 
+        foreach ($ipKeys as $key) {
             $value = HelperServer::getValue($key);
 
             if (!HelperValidate::isEmpty($value)) {
                 foreach (explode(',', $value) as $ip) {
                     $ip = trim($ip);
 
-                    if (filter_var(
-                        $ip,
-                        FILTER_VALIDATE_IP,
-                        FILTER_FLAG_NO_PRIV_RANGE |
-                            FILTER_FLAG_NO_RES_RANGE
-                    ) !== false) {
-
+                    if (filter_var($ip, FILTER_VALIDATE_IP)) {
                         return $ip;
                     }
                 }
             }
         }
+
         return null;
     }
 
     /**
-     * Devuelve el idioma configurado en al dispositivo 
-     * HTTP_ACCEPT_LANGUAGE
+     * Obtiene el idioma del navegador del usuario a partir del encabezado HTTP_ACCEPT_LANGUAGE.
      *
-     * @param $languageDefault
-     *
-     * @return string
+     * @return string El idioma principal del navegador en minúsculas. Si no se encuentra el encabezado, 
+     *                o si no se puede analizar, se devuelve 'es' como idioma predeterminado.
      */
-    public static function getLanguageBrowser($languageDefault)
+    public static function getBrowserLanguage()
     {
-
-        $httpAccept = HelperString::toLower(
-            HelperServer::getValue('HTTP_ACCEPT_LANGUAGE')
-        );
-
-        if (HelperValidate::isEmpty($httpAccept)) {
-            return $languageDefault;
+        $httpAcceptLanguage = HelperServer::getValue('HTTP_ACCEPT_LANGUAGE');
+        if (HelperValidate::isEmpty($httpAcceptLanguage)) {
+            return 'es'; // Default language if none is found
         }
 
-        // dividir los posibles idiomas en un array
-        $arrayAccept = explode(",", $httpAccept);
-
-        $languages = [];
-        foreach ($arrayAccept as $val) {
-
-            // comprovar el valor q y crear un array asociativo. 
-            // Si no existe el valor q, es por defecto 1
-            if (preg_match(
-                "/(.*);q=([0-1]{0,1}.\d{0,4})/i",
-                $val,
-                $matches
-            )) {
-                $languages[$matches[1]] = (float)$matches[2];
-            } else {
-
-                $languages[$val] = 1.0;
-            }
+        $languages = explode(',', $httpAcceptLanguage);
+        if (count($languages) > 0) {
+            $primaryLanguage = explode(';', $languages[0]);
+            return HelperString::toLower(trim($primaryLanguage[0]));
         }
 
-        // Eel idioma por defecto el cual es el valor q más alto
-        $qval = 0.0;
-
-        foreach ($languages as $key => $value) {
-
-            if ($value > $qval) {
-                $qval = (float)$value;
-
-                $languageDefault = $key;
-            }
-        }
-        return HelperString::toLower($languageDefault);
+        return 'es'; // Default language if parsing fails
     }
 }
