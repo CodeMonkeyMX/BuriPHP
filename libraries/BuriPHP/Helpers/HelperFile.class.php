@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.1
+ * @version 1.2
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,16 +18,13 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperFile
 {
     /**
-     * Escribe texto en un archivo. Se puede indica un máximo a 
-     * escribir.
-     * Devuelve los bytes escritos.
+     * Escribe texto en un archivo.
      *
-     * @param resource $handleFile
-     * @param mixed    $txt
-     * @param int      $maxBytes
-     *
-     * @return int
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo donde se escribirá el texto.
+     * @param string $txt El texto que se escribirá en el archivo.
+     * @param int|null $maxBytes (Opcional) El número máximo de bytes a escribir. Si es null, se escribe todo el texto.
+     * @return int|false El número de bytes escritos, o false en caso de error.
+     * @throws \Exception Si no se puede escribir en el archivo.
      */
     public static function write($handleFile, $txt, $maxBytes = null)
     {
@@ -44,12 +41,11 @@ abstract class HelperFile
     }
 
     /**
-     * Desbloquea un archivo bloqueado.
-     * Al hacer un close, también se desbloquea
+     * Desbloquea un archivo previamente bloqueado.
      *
-     * @param resource $handleFile
-     *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo que se desea desbloquear.
+     * 
+     * @throws \Exception Si no es posible desbloquear el archivo.
      */
     public static function unLock($handleFile)
     {
@@ -59,12 +55,11 @@ abstract class HelperFile
     }
 
     /**
-     * Trunca un archivo a un determinado tamaño
+     * Trunca el contenido de un archivo al tamaño especificado.
      *
-     * @param resource $handleFile
-     * @param int      $tamanio
-     *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo que se va a truncar.
+     * @param int $tamanio El tamaño al que se desea truncar el archivo.
+     * @throws \Exception Si no se puede truncar el archivo.
      */
     public static function truncateContent($handleFile, $tamanio)
     {
@@ -74,11 +69,10 @@ abstract class HelperFile
     }
 
     /**
-     * Modifica la fecha del último acceso al archivo
+     * Intenta actualizar la fecha de acceso y modificación del archivo especificado.
      *
-     * @param $filename
-     *
-     * @throws Exception
+     * @param string $filename La ruta del archivo que se desea tocar.
+     * @throws \Exception Si no se puede realizar la operación touch en el archivo.
      */
     public static function touch($filename)
     {
@@ -88,11 +82,26 @@ abstract class HelperFile
     }
 
     /**
-     * Posiciona el cursor al final del archivo
+     * Desplaza el cursor del archivo al inicio.
      *
-     * @param resource $handleFile
+     * @param resource $handleFile El manejador del archivo.
+     * @throws \Exception Si no se puede desplazar el cursor al inicio del archivo.
+     */
+    public static function seekToStart($handleFile)
+    {
+        if (rewind($handleFile) === false) {
+            throw new \Exception('No se puede desplazar el cursor al inicio del archivo');
+        }
+    }
+
+    /**
+     * Desplaza el cursor al final del archivo.
      *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo.
+     * 
+     * @throws \Exception Si no se puede desplazar el cursor al final del archivo.
+     * 
+     * @return void
      */
     public static function seekToEnd($handleFile)
     {
@@ -103,27 +112,12 @@ abstract class HelperFile
     }
 
     /**
-     * Posiciona el cursor al inicio del archivo
+     * Desplaza el cursor del archivo en la cantidad especificada por el offset desde la posición actual.
      *
-     * @param $handleFile
-     *
-     * @throws Exception
-     */
-    public static function seekToBegin($handleFile)
-    {
-        if (rewind($handleFile) === false) {
-            throw new \Exception('No se puede desplazar el cursor al inicio del archivo');
-        }
-    }
-
-    /**
-     * Posiciona el cursor dentro de un archivo partiendo de la
-     * posición actual del cursor
-     *
-     * @param resource $handleFile
-     * @param int      $offset
-     *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo.
+     * @param int $offset La cantidad de bytes a desplazar el cursor.
+     * @throws \Exception Si no se puede desplazar el cursor en el archivo.
+     * @return void
      */
     public static function seekIncrement($handleFile, $offset)
     {
@@ -134,34 +128,14 @@ abstract class HelperFile
     }
 
     /**
-     * Posiciona el cursor dentro de un archivo partiendo desde el 
-     * final
+     * Desplaza el cursor del archivo desde el inicio del archivo.
      *
-     * @param resource $handleFile
-     * @param int      $offset
-     *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo.
+     * @param int $offset La cantidad de bytes a desplazar desde el inicio del archivo.
+     * @throws \Exception Si no se puede desplazar el cursor desde el inicio del archivo.
+     * @return void
      */
-    public static function seekFromEnd($handleFile, $offset)
-    {
-
-        $ret = fseek($handleFile, (-1 * $offset), SEEK_END);
-
-        if ($ret === false || $ret == -1) {
-            throw new \Exception('No se puede desplazar el cursor desde el final del archivo');
-        }
-    }
-
-    /**
-     * Posiciona el cursor dentro de un archivo partiendo desde el 
-     * inicio
-     *
-     * @param resource $handleFile
-     * @param int      $offset
-     *
-     * @throws Exception
-     */
-    public static function seekFromBegin($handleFile, $offset)
+    public static function seekFromStart($handleFile, $offset)
     {
         $ret = fseek($handleFile, $offset, SEEK_SET);
 
@@ -171,16 +145,31 @@ abstract class HelperFile
     }
 
     /**
-     * Renombra un archivo a otro nombre. Puede sobreescribir el 
-     * destino
-     * Por defecto no lo sobreescribe. Lanza una excepción si hay 
-     * algún error
+     * Desplaza el cursor del archivo desde el final del archivo por un número específico de bytes.
      *
-     * @param string $sourceFile
-     * @param string $targetFile
-     * @param bool   $overwrite
+     * @param resource $handleFile El manejador del archivo.
+     * @param int $offset El número de bytes para desplazar desde el final del archivo.
+     * 
+     * @throws \Exception Si no se puede desplazar el cursor desde el final del archivo.
+     */
+    public static function seekFromEnd($handleFile, $offset)
+    {
+        $ret = fseek($handleFile, (-1 * $offset), SEEK_END);
+
+        if ($ret === false || $ret == -1) {
+            throw new \Exception('No se puede desplazar el cursor desde el final del archivo');
+        }
+    }
+
+    /**
+     * Renombra un archivo de origen a un archivo de destino.
      *
-     * @throws Exception
+     * @param string $sourceFile Ruta del archivo de origen.
+     * @param string $targetFile Ruta del archivo de destino.
+     * @param bool $overwrite Indica si se debe sobrescribir el archivo de destino si ya existe. Por defecto es false.
+     * 
+     * @throws \Exception Si el archivo de destino ya existe y no se debe sobrescribir.
+     * @throws \Exception Si no se puede renombrar el archivo de origen al archivo de destino.
      */
     public static function rename($sourceFile, $targetFile, $overwrite = false)
     {
@@ -193,46 +182,41 @@ abstract class HelperFile
     }
 
     /**
-     * Elimina todos los archivos de un directorio que cumplan un 
-     * determinado patrón.
-     * Lanza excepciones si algún archivo no se ha podido eliminad
+     * Elimina archivos en un directorio que coincidan con un patrón específico.
      *
-     * @param string $pattern
+     * @param string $pattern El patrón de búsqueda de los archivos a eliminar.
+     * @param string $path La ruta del directorio donde se buscarán los archivos.
      *
+     * @return void
      */
-    public static function removeByPattern($pattern)
+    public static function removeByPattern($pattern, $path)
     {
-        array_map(function ($filename) {
-            self::remove($filename);
-        }, glob($pattern));
+        array_map('unlink', glob($path . $pattern));
     }
 
     /**
-     * Elimina físicamente un archivo.
-     * Si no existe, no pasa nada, pero si existe y no se ha podido
-     * eliminar, se lanza una excepción.
+     * Elimina un fichero en la ruta especificada.
      *
-     * @param $filepath
-     *
-     * @throws Exception
+     * @param string $filepath La ruta del fichero a eliminar.
+     * @throws \Exception Si el fichero no existe o no se puede eliminar.
      */
-    public static function remove($filepath)
+    public static function deleteFile($filepath)
     {
         if (!file_exists($filepath)) {
             return;
         }
-        if (unlink($filepath) === false) {
-            throw new \Exception("No se puede eliminar el archivo {$filepath}");
+        if (!unlink($filepath)) {
+            throw new \Exception("No se puede eliminar el fichero {$filepath}");
         }
     }
 
     /**
-     * Lee el contenido de un archivo en función de un formato
+     * Lee y analiza el contenido de un archivo utilizando un formato específico.
      *
-     * @param resource $handleFile
-     * @param string   $format
-     *
-     * @return array|int
+     * @param resource $handleFile El manejador del archivo abierto.
+     * @param string $format El formato de cadena que se utilizará para analizar el contenido del archivo.
+     * @return array|false Devuelve un array con los valores leídos y analizados según el formato especificado, 
+     *                     o false en caso de error.
      */
     public static function readScan($handleFile, $format)
     {
@@ -240,15 +224,11 @@ abstract class HelperFile
     }
 
     /**
-     * Lee una linea de un archivo abierto. Hasta encontrar un \r\n
-     * La línea tambén incluye el salto de línea.
-     * Si no puede leer del archivo, lanza una excepción
-     * Si el archivo a leer esta vacío, lanza una excepción
+     * Lee una línea de un archivo.
      *
-     * @param resource $handleFile
-     *
-     * @return string
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo abierto.
+     * @return string La línea leída del archivo.
+     * @throws \Exception Si no se puede leer la línea del archivo.
      */
     public static function readLine($handleFile)
     {
@@ -260,16 +240,12 @@ abstract class HelperFile
     }
 
     /**
-     * Lee una cantidad de char de un archivo. Por defecto 1.
-     * Saltos de línea (\r\n) son dos chars.
-     * Si no puede leer del archivo, lanza una excepción
-     * Si el archivo a leer esta vacío, lanza una excepción
+     * Lee un número específico de bytes de un archivo.
      *
-     * @param resource $handleFile
-     * @param int      $maxBytes
-     *
-     * @return string
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo desde el cual se leerán los bytes.
+     * @param int $maxBytes La cantidad máxima de bytes a leer. Por defecto es 1.
+     * @return string Los bytes leídos del archivo.
+     * @throws \Exception Si no es posible leer los bytes especificados del archivo.
      */
     public static function readChars($handleFile, $maxBytes = 1)
     {
@@ -281,42 +257,12 @@ abstract class HelperFile
     }
 
     /**
-     * Abre una conexión contra un archivo de texto
-     * Si se abre, devuelve el handle de la conexion, si hay error 
-     * lanza excepción
-     * r
-     *     Sólo permite leer. No se puede escribir mientras esta 
-     *     abierto
-     *     Puntero al inicio del archivo al abrir.
-     *     Falla si el archivo no existe.
-     * r+
-     *     Se puede leer i escribit.
-     *     Puntero al inicio del archivo al abrir.
-     *     Falla si el archivo no existe. Es obligatorio que exista
-     * w
-     *     Sólo permite escribir. No leer
-     *     Puntero al inicio del archivo al abrir.
-     *     Si el archivo no existe, se crea. Si está credo 
-     *     sobreescribe.
-     * w+
-     *     Se puede leer i escribit.
-     *     Puntero al inicio del archivo al abrir.
-     *     Si el archivo no existe, se crea. Si está credo 
-     *     sobreescribe.
-     * a
-     *     Sólo permite escribir. No leer
-     *     Puntero al final del archivo al abrir.
-     *     Si el archivo no existe, se crea.
-     * a+
-     *     Se puede leer i escribit.
-     *     Puntero al final del archivo al abrir.
-     *     Si el archivo no existe, se crea.
+     * Abre un archivo de texto en el modo de acceso especificado.
      *
-     * @param string $filepath
-     * @param string $accessMode
-     *
-     * @return resource
-     * @throws Exception
+     * @param string $filepath La ruta del archivo que se desea abrir.
+     * @param string $accessMode El modo de acceso en el que se desea abrir el archivo (por ejemplo, 'r' para lectura, 'w' para escritura).
+     * @return resource El manejador del archivo abierto.
+     * @throws \Exception Si no es posible abrir el archivo en el modo especificado.
      */
     public static function openText($filepath, $accessMode)
     {
@@ -328,42 +274,12 @@ abstract class HelperFile
     }
 
     /**
-     * Abre una conexión contra un archivo binario
-     * Si se abre, devuelve el handle de la conexion, si hay error 
-     * lanza excepción
-     * r
-     *     Sólo permite leer. No se puede escribir mientras esta 
-     *      abierto
-     *     Puntero al inicio del archivo al abrir.
-     *     Falla si el archivo no existe.
-     * r+
-     *     Se puede leer i escribit.
-     *     Puntero al inicio del archivo al abrir.
-     *     Falla si el archivo no existe. Es obligatorio que exista
-     * w
-     *     Sólo permite escribir. No leer
-     *     Puntero al inicio del archivo al abrir.
-     *     Si el archivo no existe, se crea. Si está credo 
-     *     sobreescribe.
-     * w+
-     *     Se puede leer i escribit.
-     *     Puntero al inicio del archivo al abrir.
-     *     Si el archivo no existe, se crea. Si está credo 
-     *     sobreescribe.
-     * a
-     *     Sólo permite escribir. No leer
-     *     Puntero al final del archivo al abrir.
-     *     Si el archivo no existe, se crea.
-     * a+
-     *     Se puede leer i escribit.
-     *     Puntero al final del archivo al abrir.
-     *     Si el archivo no existe, se crea.
+     * Abre un archivo en modo binario.
      *
-     * @param string $filepath
-     * @param string $accessMode
-     *
-     * @return resource
-     * @throws Exception
+     * @param string $filepath La ruta del archivo que se desea abrir.
+     * @param string $accessMode El modo de acceso en el que se desea abrir el archivo (por ejemplo, 'r' para lectura, 'w' para escritura).
+     * @return resource El manejador del archivo abierto.
+     * @throws \Exception Si no es posible abrir el archivo en el modo especificado.
      */
     public static function openBinary($filepath, $accessMode)
     {
@@ -376,12 +292,11 @@ abstract class HelperFile
     }
 
     /**
-     * Bloquea un archivo en modo exclusivo, tanto para leer como para
-     * escribir
+     * Bloquea un archivo para evitar que otros procesos lo modifiquen simultáneamente.
      *
-     * @param resource $handleFile
-     *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo que se desea bloquear.
+     * 
+     * @throws \Exception Si no es posible bloquear el archivo.
      */
     public static function lock($handleFile)
     {
@@ -391,13 +306,10 @@ abstract class HelperFile
     }
 
     /**
-     * Indica si el archivo se puede escribir.
-     * Si el archivo no existe, devuelve false.
-     * No es necesario estar abierto.
+     * Verifica si un archivo es escribible.
      *
-     * @param string $filename
-     *
-     * @return bool
+     * @param string $filename La ruta del archivo a verificar.
+     * @return bool Devuelve true si el archivo es escribible, de lo contrario false.
      */
     public static function isWritable($filename)
     {
@@ -408,13 +320,10 @@ abstract class HelperFile
     }
 
     /**
-     * Indica si el archivo se puede leer.
-     * Si el archivo no existe, devuelve false.
-     * No es necesario estar abierto.
+     * Verifica si un archivo es legible.
      *
-     * @param string $filename
-     *
-     * @return bool
+     * @param string $filename La ruta del archivo a verificar.
+     * @return bool Devuelve true si el archivo existe y es legible, de lo contrario devuelve false.
      */
     public static function readable($filename)
     {
@@ -425,13 +334,11 @@ abstract class HelperFile
     }
 
     /**
-     * Devuelve el tamaño en bytes de un archivo.
-     * Si el archivo no existe, devuelve -1
+     * Obtiene el tamaño de un archivo en bytes.
      *
-     * @param $filename
-     *
-     * @return false|int
-     * @throws Exception
+     * @param string $filename La ruta del archivo del cual se desea obtener el tamaño.
+     * @return int El tamaño del archivo en bytes, o -1 si el archivo no existe.
+     * @throws \Exception Si no se puede obtener el tamaño del archivo.
      */
     public static function getSizeBytes($filename)
     {
@@ -446,12 +353,11 @@ abstract class HelperFile
     }
 
     /**
-     * Devuelve la posición actual del cursor
+     * Obtiene la posición actual del cursor dentro del archivo.
      *
-     * @param resource $handleFile
-     *
-     * @return false|int
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo.
+     * @return int La posición actual del cursor dentro del archivo.
+     * @throws \Exception Si no es posible obtener la posición del cursor.
      */
     public static function getSeekPosition($handleFile)
     {
@@ -463,12 +369,10 @@ abstract class HelperFile
     }
 
     /**
-     * Reemplaza los separadores de directorio "\\" por "/" y elimina 
-     * los innecesarios
+     * Sanitiza una ruta de archivo reemplazando barras invertidas y redundancias.
      *
-     * @param string $filepath
-     *
-     * @return string
+     * @param string $filepath La ruta del archivo a sanitizar.
+     * @return string La ruta sanitizada.
      */
     public static function getSanitizedPath($filepath)
     {
@@ -481,34 +385,21 @@ abstract class HelperFile
     }
 
     /**
-     * Función que devuelve sólo el nombre del archivo, sin extensión 
-     * ni directorio.
-     * Separador de directorio = '/'
-     * Si sólo hay un directorio (último carácter es '/') implica que 
-     * no hay nombre de archivo y devuelve ''
+     * Obtiene solo el nombre del archivo de una ruta dada.
      *
-     * @param string $filepath
-     *
-     * @return string
+     * @param string $filepath La ruta completa del archivo.
+     * @return string El nombre del archivo sin la extensión. Si la ruta termina en '/', retorna una cadena vacía.
      */
     public static function getOnlyFileName($filepath)
     {
-        $filepath = self::getSanitizedPath($filepath);
-        $lastPos   = strlen($filepath) - 1;
-        if ($filepath[$lastPos] == '/') {
-            return '';
-        }
         return pathinfo($filepath, PATHINFO_FILENAME);
     }
 
     /**
-     * Función que devuelve sólo la extensión de un archivo
-     * Si tiene más de una, devuelve la última y si no 
-     * tiene devuelve ""
+     * Obtiene solo la extensión de un archivo dado su ruta.
      *
-     * @param string $filepath
-     *
-     * @return string
+     * @param string $filepath La ruta completa del archivo.
+     * @return string La extensión del archivo.
      */
     public static function getOnlyExtension($filepath)
     {
@@ -516,14 +407,10 @@ abstract class HelperFile
     }
 
     /**
-     * Función que devuelde sólo el directorio del archivo con path.
-     * Si sólo hay el nombre del archivo, el directorio es ""
-     * Si sólo hay directorio (sin nombre de archivo) devuelve el 
-     * mismo directorio
+     * Obtiene solo el nombre del directorio de una ruta de archivo dada.
      *
-     * @param string $filepath
-     *
-     * @return string
+     * @param string $filepath La ruta del archivo de la cual se desea obtener el nombre del directorio.
+     * @return string El nombre del directorio sin el archivo.
      */
     public static function getOnlyDirName($filepath)
     {
@@ -546,15 +433,11 @@ abstract class HelperFile
         return $dir;
     }
 
-
     /**
-     * Devuelve el nombre del archivo al que apunta el link.
-     * No es necesario estar abierto.
-     * Si no es un link, devuelve ''
+     * Obtiene el destino de un enlace simbólico.
      *
-     * @param string $nameLink
-     *
-     * @return string
+     * @param string $nameLink El nombre del enlace simbólico.
+     * @return string El destino del enlace simbólico si existe, de lo contrario una cadena vacía.
      */
     public static function getLinkTarget($nameLink)
     {
@@ -565,15 +448,20 @@ abstract class HelperFile
     }
 
     /**
-     * Devuelve el nombre, path, tamaño y fechas de un archivo
-     * Opciones name, server_path, size, date, readable, writable, 
-     * executable, fileperms
+     * Obtiene información sobre un archivo especificado.
      *
-     * @param string   path to file
-     * @param mixed    array or comma separated string of information 
-     * returned
-     *
-     * @return   array
+     * @param string $file La ruta del archivo del cual se desea obtener información.
+     * @param array|string $returnedValues Valores que se desean obtener sobre el archivo. 
+     *        Puede ser un array o una cadena separada por comas. Los valores posibles son:
+     *        - 'name': Nombre del archivo.
+     *        - 'server_path': Ruta completa del archivo en el servidor.
+     *        - 'size': Tamaño del archivo en bytes.
+     *        - 'date': Fecha de creación del archivo.
+     *        - 'readable': Indica si el archivo es legible.
+     *        - 'writable': Indica si el archivo es escribible.
+     *        - 'executable': Indica si el archivo es ejecutable.
+     *        - 'fileperms': Permisos del archivo.
+     * @return array Información del archivo basada en los valores solicitados.
      */
     public static function getInfo($file, $returnedValues = array('name', 'server_path', 'size', 'date'))
     {
@@ -622,15 +510,11 @@ abstract class HelperFile
     }
 
     /**
-     * Crea y devuelve un nombre único de un archivo temporal en el 
-     * directorio temporal del sistema
-     * Se le puede añadir un prefijo de 3 caracteres como máximo.
-     * Lanza una excecpión si no se puede crear
+     * Crea un archivo temporal en el directorio temporal del sistema.
      *
-     * @param string $prefix
-     *
-     * @return string
-     * @throws Exception
+     * @param string $prefix Prefijo opcional para el nombre del archivo temporal.
+     * @return string Nombre del archivo temporal creado.
+     * @throws \Exception Si no es posible crear el archivo temporal.
      */
     public static function getFileTmp($prefix = '')
     {
@@ -642,14 +526,10 @@ abstract class HelperFile
     }
 
     /**
-     * Función que devuelde el nombre completo (nombre + extensión) 
-     * del archivo, sin directorio
-     * Si el archivo sólo tiene directorio, devuelve ""
-     * SI el archivo sólo contiene nombre de vuelve el mismo nombre
+     * Obtiene el nombre completo del archivo desde una ruta dada.
      *
-     * @param string $filepath
-     *
-     * @return string
+     * @param string $filepath La ruta completa del archivo.
+     * @return string El nombre completo del archivo. Si la ruta termina en '/', retorna una cadena vacía.
      */
     public static function getFileNameFull($filepath)
     {
@@ -662,18 +542,15 @@ abstract class HelperFile
     }
 
     /**
-     * Devuelve el contenido de un archivo.
-     * Se puede indicar un offset y un máximo de bytes a devolver
-     * Si el archivo no existe, lanza una excepción.
-     * Saltos de línea son \r\n
-     * Si hay un offset es obligatorio un máximo de bytes a devolver
+     * Obtiene todo el contenido de un archivo.
      *
-     * @param string   $filepath
-     * @param int|null $offset
-     * @param int|null $maxBytes
-     *
-     * @return false|string
-     * @throws Exception
+     * @param string $filepath La ruta del archivo del cual se obtendrá el contenido.
+     * @param int|null $offset (Opcional) El punto de inicio desde donde se leerá el archivo.
+     * @param int|null $maxBytes (Opcional) El número máximo de bytes a leer desde el archivo.
+     * 
+     * @return string El contenido del archivo.
+     * 
+     * @throws \Exception Si no es posible leer el contenido del archivo.
      */
     public static function getAllContent($filepath, $offset = null, $maxBytes = null)
     {
@@ -695,12 +572,11 @@ abstract class HelperFile
     }
 
     /**
-     * Fuerza la escritura del bufer al archivo.
-     * Lanza una excepción si no puede realizarlo
+     * Fuerza a que se escriban todos los datos pendientes en el archivo.
      *
-     * @param resource $handleFile
-     *
-     * @throws Exception
+     * @param resource $handleFile El manejador del archivo que se va a vaciar.
+     * 
+     * @throws \Exception Si no se puede forzar la escritura del archivo.
      */
     public static function flush($handleFile)
     {
@@ -710,11 +586,10 @@ abstract class HelperFile
     }
 
     /**
-     * Indica si un archivo existe
+     * Verifica si un archivo existe en la ruta especificada.
      *
-     * @param string $filepath
-     *
-     * @return mixed
+     * @param string $filepath La ruta del archivo a verificar.
+     * @return bool Devuelve true si el archivo existe, de lo contrario false.
      */
     public static function exists($filepath)
     {
@@ -722,11 +597,10 @@ abstract class HelperFile
     }
 
     /**
-     * Detecta el End Of File de un archivo
+     * Verifica si se ha alcanzado el final del archivo.
      *
-     * @param $handleFile
-     *
-     * @return bool
+     * @param resource $handleFile El manejador del archivo que se está leyendo.
+     * @return bool Devuelve true si se ha alcanzado el final del archivo, de lo contrario false.
      */
     public static function eof($handleFile)
     {
@@ -734,14 +608,11 @@ abstract class HelperFile
     }
 
     /**
-     * Crea un link simbólico de un archio. No es necesario que esté 
-     * abierto
-     * Lanza una excepción si no se ha podido crear
+     * Crea un enlace simbólico (symlink) desde un archivo de origen a un destino.
      *
-     * @param string $sourceFilename
-     * @param string $nameLinkDestination
-     *
-     * @throws Exception
+     * @param string $sourceFilename Ruta del archivo de origen.
+     * @param string $nameLinkDestination Ruta del enlace simbólico de destino.
+     * @throws \Exception Si no es posible crear el enlace simbólico.
      */
     public static function createLink($sourceFilename, $nameLinkDestination)
     {
@@ -752,15 +623,14 @@ abstract class HelperFile
     }
 
     /**
-     * Copia un archivo a otro. Por defecto no se sobreescribe.
-     * Lanza una excecpión si no se ha copiado por algún motivo
-     * Se puede copiar entre diferentes directorios
+     * Copia un archivo de una ubicación a otra.
      *
-     * @param string $sourceFile
-     * @param string $targetFile
-     * @param bool   $overwrite
-     *
-     * @throws Exception
+     * @param string $sourceFile Ruta del archivo origen.
+     * @param string $targetFile Ruta del archivo destino.
+     * @param bool $overwrite Indica si se debe sobrescribir el archivo destino si ya existe. Por defecto es false.
+     * 
+     * @throws \Exception Si el archivo destino ya existe y no se debe sobrescribir.
+     * @throws \Exception Si no se puede copiar el archivo origen al archivo destino.
      */
     public static function copy($sourceFile, $targetFile, $overwrite = false)
     {
@@ -773,15 +643,14 @@ abstract class HelperFile
     }
 
     /**
-     * Mueve un archivo. Por defecto no se sobreescribe.
-     * Lanza una excecpión si no se ha movido por algún motivo
-     * Se puede mover entre diferentes directorios
+     * Mueve un archivo desde una ubicación de origen a una ubicación de destino.
      *
-     * @param string $sourceFile
-     * @param string $targetFile
-     * @param bool   $overwrite
-     *
-     * @throws Exception
+     * @param string $sourceFile La ruta del archivo de origen.
+     * @param string $targetFile La ruta del archivo de destino.
+     * @param bool $overwrite (Opcional) Si se debe sobrescribir el archivo de destino si ya existe. Por defecto es false.
+     * 
+     * @throws \Exception Si el archivo de destino ya existe y no se debe sobrescribir.
+     * @throws \Exception Si no se puede mover el archivo de origen al archivo de destino.
      */
     public static function move($sourceFile, $targetFile, $overwrite = false)
     {
@@ -794,9 +663,10 @@ abstract class HelperFile
     }
 
     /**
-     * Cierra el fichero
+     * Cierra un archivo abierto.
      *
-     * @param $handleFile
+     * @param resource $handleFile El manejador del archivo que se desea cerrar.
+     * @return void
      */
     public static function close($handleFile)
     {
@@ -804,13 +674,16 @@ abstract class HelperFile
     }
 
     /**
-     * Cambiamos la extensión de un archivo.
-     * Si no tiene extensión, le asignamos la nueva.
+     * Cambia la extensión de un archivo dado.
      *
-     * @param string $filename
-     * @param string $newExtension
+     * @param string $filename El nombre del archivo al que se le cambiará la extensión.
+     * @param string $newExtension La nueva extensión que se aplicará al archivo.
+     * @return string El nombre del archivo con la nueva extensión.
      *
-     * @return string
+     * Si la nueva extensión está vacía, se devuelve el nombre del archivo original.
+     * Si la nueva extensión no comienza con un punto, se le agrega uno automáticamente.
+     * Si el nombre del archivo no contiene un nombre de archivo, se devuelve el nombre del archivo original.
+     * Si el directorio está vacío y el nombre del archivo no comienza con una barra, se devuelve el nombre del archivo con la nueva extensión.
      */
     public static function changeExtension($filename, $newExtension)
     {
@@ -837,6 +710,15 @@ abstract class HelperFile
         return $dir . '/' . $name . $newExtension;
     }
 
+    /**
+     * Obtiene los tipos MIME soportados.
+     *
+     * @param string|bool $mime El tipo MIME a buscar. Si es false, se devuelve la lista completa de tipos MIME soportados.
+     * 
+     * @return array|string Devuelve un array con los tipos MIME soportados si $mime es false. Si $mime es un string, devuelve el tipo MIME correspondiente o un array con un mensaje de error si no se encuentra.
+     * 
+     * @throws \Exception Si el tipo MIME no es soportado.
+     */
     public static function getSupportedMime($mime = false)
     {
         $supported = [
@@ -946,6 +828,20 @@ abstract class HelperFile
         }
     }
 
+    /**
+     * Sube un archivo al servidor.
+     *
+     * @param array $args Argumentos para la función.
+     *      - 'file' (array): Archivo a subir. Debe contener las claves 'name' y 'tmp_name'.
+     *      - 'path' (string): Ruta donde se copiará el archivo.
+     *      - 'supportedExt' (array, opcional): Extensiones de archivo soportadas.
+     *
+     * @return string|array Ruta del archivo subido o un array con 'status' y 'message' en caso de error.
+     *
+     * @throws \Exception Si no se envía ningún archivo.
+     * @throws \Exception Si no se establece la ruta para copiar el archivo.
+     * @throws \Exception Si el archivo no es soportado.
+     */
     public static function uploadFile(...$args)
     {
         try {
