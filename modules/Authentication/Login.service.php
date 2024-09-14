@@ -6,8 +6,7 @@ use BuriPHP\Settings;
 use Firebase\JWT\JWT;
 use Libraries\BuriPHP\Helpers\HelperArray;
 use Libraries\BuriPHP\Helpers\HelperCrypt;
-use Libraries\BuriPHP\Helpers\HelperDateTime;
-use Libraries\BuriPHP\Helpers\HelperDevice;
+use Libraries\BuriPHP\Helpers\HelperDate;
 use Libraries\BuriPHP\Helpers\HelperServer;
 use Libraries\BuriPHP\Helpers\HelperSession;
 use Libraries\BuriPHP\Helpers\HelperString;
@@ -105,8 +104,8 @@ class Login extends Service
     final public function setSession(...$arg)
     {
         $sessionVersion = '1.0';
-        $timeNow = HelperDateTime::getNowTimezone();
-        $timeExpiration = HelperDateTime::addMinutes($timeNow, 4320); // 3 Días (24hrs = 1440) 4320
+        $timeNow = HelperDate::getCurrentDateWithTimezone(Settings::$timeZone, true);
+        $timeExpiration = HelperDate::addMinutesToDate($timeNow, 4320); // 3 Días (1440(24hrs) * 3(Días) = 4320)
         $tokenId = HelperCrypt::createHash('sha1', HelperString::random(16));
 
         $user = [

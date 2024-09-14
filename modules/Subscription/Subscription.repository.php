@@ -2,9 +2,9 @@
 
 namespace Repositories;
 
+use BuriPHP\Settings;
 use Libraries\BuriPHP\Database;
 use Libraries\BuriPHP\Helpers\HelperDate;
-use Libraries\BuriPHP\Helpers\HelperDateTime;
 use Libraries\BuriPHP\Repository;
 
 class Subscription extends Repository
@@ -29,7 +29,7 @@ class Subscription extends Repository
      */
     public function create($data)
     {
-        $data['DATE_CREATED'] = HelperDateTime::getNowTimezone();
+        $data['DATE_CREATED'] = HelperDate::getCurrentDateWithTimezone(Settings::$timeZone, true);
         $this->database->insert($this->table, Database::camelToSnake($data));
 
         return $this->database->id();

@@ -2,8 +2,9 @@
 
 namespace Services;
 
+use BuriPHP\Settings;
 use Libraries\BuriPHP\Helpers\HelperArray;
-use Libraries\BuriPHP\Helpers\HelperDateTime;
+use Libraries\BuriPHP\Helpers\HelperDate;
 use Libraries\BuriPHP\Helpers\HelperValidate;
 use Libraries\BuriPHP\Service;
 use Libraries\Functions;
@@ -74,8 +75,8 @@ class Subscription extends Service
             "price" => $request['price'],
             "billingPeriod" => $request['billingPeriod'],
             "status" => $request['status'],
-            'datePaymentUpdate' => HelperDateTime::getNowTimezone(),
-            'datePaymentNext' => HelperDateTime::addMonthsToDate(HelperDateTime::getNowTimezone(), 1)
+            'datePaymentUpdate' => HelperDate::getCurrentDateWithTimezone(Settings::$timeZone, true),
+            'datePaymentNext' => HelperDate::addMonthsToDate(HelperDate::getCurrentDateWithTimezone(Settings::$timeZone, true), 1)
         ];
 
         $id = $this->repository->create($object);

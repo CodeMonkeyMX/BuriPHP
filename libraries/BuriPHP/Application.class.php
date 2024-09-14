@@ -16,7 +16,7 @@ namespace Libraries\BuriPHP;
 use BuriPHP\Settings;
 use Libraries\BuriPHP\Helpers\HelperArray;
 use Libraries\BuriPHP\Helpers\HelperConvert;
-use Libraries\BuriPHP\Helpers\HelperDateTime;
+use Libraries\BuriPHP\Helpers\HelperDate;
 use Libraries\BuriPHP\Helpers\HelperFile;
 use Libraries\BuriPHP\Helpers\HelperHeader;
 use Libraries\BuriPHP\Helpers\HelperLog;
@@ -34,7 +34,7 @@ final class Application
     public function __construct()
     {
         HelperServer::errorReporting(Settings::$errorReporting);
-        HelperDateTime::setLocateTimeZone();
+        HelperDate::setLocateTimeZone();
     }
 
     /**
