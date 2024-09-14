@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,14 +18,22 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperValidate
 {
     /**
-     * Comprueba si un valor esta vacío.
-     * Espacios en blanco se consideran vacios. Fechas a cero, se 
-     * consideran vacias.
-     * 0, true o false se considera no vacio.
+     * Verifica si un valor está vacío.
      *
-     * @param mixed $value
+     * Esta función determina si un valor dado debe considerarse vacío.
+     * Los siguientes valores se consideran no vacíos:
+     * - `false`
+     * - Objetos
+     * - `null`
+     * - El string '0'
+     * 
+     * Los siguientes valores se consideran vacíos:
+     * - Arrays con longitud 0
+     * - Los strings '0000-00-00', '0000-00-00 00:00:00', '00:00:00', 'null'
+     * - Strings vacíos
      *
-     * @return bool
+     * @param mixed $value El valor a verificar.
+     * @return bool `true` si el valor está vacío, `false` en caso contrario.
      */
     public static function isEmpty($value): bool
     {
@@ -55,189 +63,110 @@ abstract class HelperValidate
     }
 
     /**
-     * Indica si el correo pasado como parámetro es válida o no
+     * Verifica si una cadena es un correo electrónico válido.
      *
-     * @param string $sEmail
+     * Utiliza la función filter_var con el filtro FILTER_VALIDATE_EMAIL para 
+     * validar el formato del correo electrónico.
      *
-     * @return bool
-     * @version 1.0
+     * @param string $sEmail La cadena que se va a verificar.
+     * @return bool Devuelve true si la cadena es un correo electrónico válido, 
+     *              de lo contrario, devuelve false.
      */
     public static function isEmail($sEmail)
     {
-        /* filter_var: Si NO es email devuelve false, si es correcto 
-           devuelve el mismo email */
         return !(filter_var($sEmail, FILTER_VALIDATE_EMAIL) === false);
     }
 
-
     /**
-     * Comprueba si una fecha i hora en formato "yyyy-mm-dd hh:mm:ss" 
-     * es correcta
+     * Verifica si el dispositivo es un dispositivo móvil.
      *
-     * @param string $datetime
-     * @param string $sep
+     * Esta función comprueba el agente de usuario (user agent) para determinar si 
+     * el dispositivo es uno de los siguientes: iPhone, iPod, iPad, Android, 
+     * BlackBerry, WebOS o Windows Phone.
      *
-     * @return bool
+     * @return bool Devuelve true si el dispositivo es un dispositivo móvil, 
+     *              de lo contrario, devuelve false.
      */
-
-    public static function isDateTime($datetime, $sep = '-'): bool
+    public static function isMobileDevice(): bool
     {
-        $datetime = '' . $datetime;
-        // yyyy-mm-dd hh:mm:ss
-        if (
-            19 != strlen($datetime) ||
-            $datetime[4] != $sep ||
-            $datetime[7] != $sep ||
-            $datetime[10] != ' ' ||
-            $datetime[13] != ':' ||
-            $datetime[16] != ':'
-        ) {
+        $userAgent = strtolower(HelperServer::getValue('HTTP_USER_AGENT'));
+        $mobileDevices = ['iphone', 'ipod', 'ipad', 'android', 'blackberry', 'webos', 'windows phone'];
 
-            return false;
-        }
-
-        list($date, $hour) = explode(' ', $datetime);
-        list($year, $month, $day) = explode($sep, $date);
-        list($hour, $min, $sec) = explode(':', $hour);
-        return ($datetime == date(
-            'Y-m-d H:i:s',
-            mktime($hour, $min, $sec, $month, $day, $year)
-        ));
-    }
-
-    /**
-     * Indica si una fecha en formato "yyyy-mm-dd" es válida.
-     *
-     * @param string $date
-     * @param string $sep
-     *
-     * @return bool
-     */
-    public static function isDate($date, $sep = '-'): bool
-    {
-        $date = '' . $date;
-
-        // yyyy-mm-dd
-        if (
-            10 != strlen($date) ||
-            $date[4] != $sep ||
-            $date[7] != $sep
-        ) {
-            return false;
-        }
-
-        list($year, $month, $day) = explode($sep, $date);
-        return ($date == date('Y-m-d', mktime(0, 0, 0, $month, $day, $year)));
-    }
-
-    /**
-     * Valida si es un string de hora correcta.
-     *
-     * @param $time
-     *
-     * @return bool
-     */
-    public static function isTime($time)
-    {
-        if (!@preg_match("/^\d{2}:\d{2}:\d{2}$/", $time)) {
-            return false;
-        }
-
-        $arrTime = explode(":", $time);
-
-        list($hour, $min, $sec) = $arrTime;
-        settype($hour, "integer");
-        settype($min, "integer");
-        settype($sec, "integer");
-
-        if ($hour >= 0 && $hour <= 23) {
-            if ($min >= 0 && $min <= 59) {
-                if ($sec >= 0 && $sec <= 59) {
-                    $ret = true;
-                } else {
-                    $ret = false;
-                }
-            } else {
-                $ret = false;
+        foreach ($mobileDevices as $device) {
+            if (strpos($userAgent, $device) !== false) {
+                return true;
             }
-        } else {
-            $ret = false;
         }
 
-        return $ret;
+        return false;
     }
 
     /**
-     * Indica si el dispositivo es un dispositivo móvil
-     * @return bool
-     */
-    public static function isDeviceMobile(): bool
-    {
-        $httpAgent = HelperString::toLower(
-            HelperServer::getValue('HTTP_USER_AGENT')
-        );
-
-        $iPod       = stripos($httpAgent, "ipod") !== false;
-        $iPhone     = stripos($httpAgent, "iphone") !== false;
-        $iPad       = stripos($httpAgent, "ipad") !== false;
-        $Android    = stripos($httpAgent, "android") !== false;
-        $webOS      = stripos($httpAgent, "webos") !== false;
-        $blackberry = stripos($httpAgent, "blackberry") !== false;
-
-        return ($iPod || $iPhone || $iPad || $Android || $webOS || $blackberry);
-    }
-
-    /**
-     * Indica si la llamada actual es un método POST
-     * @return bool
-     */
-    public static function isMethodPost()
-    {
-        return (strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'POST');
-    }
-
-    /**
-     * Indica si la llamada actual es un método PUT
-     * @return bool
-     */
-    public static function isMethodPut()
-    {
-        return (strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'PUT');
-    }
-
-    /**
-     * Indica si la llamada actual es un método UPDATE
-     * @return bool
-     */
-    public static function isMethodUpdate()
-    {
-        return (strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'UPDATE');
-    }
-
-    /**
-     * Indica si la llamada actual es un método DELETE
-     * @return bool
-     */
-    public static function isMethodDelete()
-    {
-        return (strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'DELETE');
-    }
-
-    /**
-     * Indica si la llamada actual es un método GET
-     * @return bool
-     */
-    public static function isMethodGet()
-    {
-        return (strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'GET');
-    }
-
-    /**
-     * Indica si el valor es un GUI válido
+     * Verifica si la solicitud HTTP es de tipo POST.
      *
-     * @param $guid
+     * @return bool Devuelve true si la solicitud es de tipo POST, de lo contrario false.
+     */
+    public static function isPostRequest(): bool
+    {
+        return strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'POST';
+    }
+
+    /**
+     * Verifica si la solicitud HTTP es de tipo PUT.
      *
-     * @return bool
+     * @return bool Devuelve true si la solicitud es de tipo PUT, de lo contrario false.
+     */
+    public static function isPutRequest(): bool
+    {
+        return strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'PUT';
+    }
+
+    /**
+     * Verifica si la solicitud HTTP es de tipo UPDATE.
+     *
+     * @return bool Devuelve true si la solicitud es de tipo UPDATE, de lo contrario false.
+     */
+    public static function isUpdateRequest(): bool
+    {
+        return strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'UPDATE';
+    }
+
+    /**
+     * Verifica si la solicitud HTTP es de tipo DELETE.
+     *
+     * @return bool Devuelve true si la solicitud es de tipo DELETE, de lo contrario false.
+     */
+    public static function isDeleteRequest(): bool
+    {
+        return strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'DELETE';
+    }
+
+    /**
+     * Verifica si la solicitud HTTP es de tipo GET.
+     *
+     * @return bool Devuelve true si la solicitud es de tipo GET, de lo contrario false.
+     */
+    public static function isGetRequest(): bool
+    {
+        return strtoupper(HelperServer::getValue('REQUEST_METHOD')) === 'GET';
+    }
+
+    /**
+     * Verifica si el nombre de archivo dado corresponde a un directorio.
+     *
+     * @param string $filename El nombre del archivo o ruta a verificar.
+     * @return bool Devuelve true si el nombre de archivo es un directorio, de lo contrario false.
+     */
+    public static function isDir($filename)
+    {
+        return is_dir($filename);
+    }
+
+    /**
+     * Verifica si una cadena es un GUID válido.
+     *
+     * @param string $guid La cadena a verificar.
+     * @return bool Devuelve true si la cadena es un GUID válido, de lo contrario, false.
      */
     public static function isGUID($guid)
     {
@@ -251,99 +180,11 @@ abstract class HelperValidate
     }
 
     /**
-     * Indica si un archivo es un linke
+     * Verifica si un objeto es una instancia de una clase específica.
      *
-     * @param string $filename
-     *
-     * @return bool
-     */
-    public static function isFileLink($filename)
-    {
-        return is_link($filename);
-    }
-
-    /**
-     * Indica si un archivo tiene extensión de imagen
-     * Contempla jpeg, png y gif
-     *
-     * @param string $file
-     *
-     * @return bool
-     */
-    public static function isFileImage($file)
-    {
-        return (preg_match('/\.(?:jpeg|png|gif|jpg)$/i', $file));
-    }
-
-    /**
-     * Indica si un archivo es ejecutable
-     *
-     * @param string $filename
-     *
-     * @return bool
-     */
-    public static function isFileExe($filename)
-    {
-        return is_executable($filename);
-    }
-
-    /**
-     * Indica si un archivo es un archivo (no es un directrorio)
-     *
-     * @param string $filename
-     *
-     * @return bool
-     */
-    public static function isFile($filename)
-    {
-        return is_file($filename);
-    }
-
-    /**
-     * Indica si el archivo es un directorio
-     *
-     * @param $filename
-     *
-     * @return bool
-     */
-    public static function isDir($filename)
-    {
-        return is_dir($filename);
-    }
-
-    /**
-     * Indica si la data esta en format UTC
-     * Format: YYYYMMDDTHHiissZ
-     *
-     * @param $datetimeUTC
-     *
-     * @return bool
-     */
-    public static function isDateTimeUTC($datetimeUTC): bool
-    {
-        /* -- UTC = 20070724T224556Z */
-        $datetimeUTC = strtoupper($datetimeUTC);
-        $date       = substr($datetimeUTC, 0, 4) . '-' .
-            substr($datetimeUTC, 4, 2) . '-' .
-            substr($datetimeUTC, 6, 2);
-        $t           = substr($datetimeUTC, 8, 1);
-        $hour        = substr($datetimeUTC, 9, 2) . ':' .
-            substr($datetimeUTC, 11, 2) . ':' .
-            substr($datetimeUTC, 13, 2);
-
-        if (!HelperValidate::isDateTime($date . " " . $hour)) {
-            return false;
-        }
-        return ($t == 'T' && 'Z' == substr($datetimeUTC, 15, 1));
-    }
-
-    /**
-     * Indica si un objeto es de una clase determinada.
-     *
-     * @param mixed  $obj
-     * @param string $className
-     *
-     * @return bool
+     * @param object $obj El objeto a verificar.
+     * @param string $className El nombre de la clase a comparar.
+     * @return bool Devuelve true si el objeto es una instancia de la clase especificada, de lo contrario false.
      */
     public static function isClassOf($obj, $className): bool
     {
@@ -351,74 +192,27 @@ abstract class HelperValidate
     }
 
     /**
-     * Devuelve true si una fecha esta entre otras dos
+     * Verifica si una palabra específica existe dentro de un texto dado.
      *
-     * @param string $date
-     * @param string $start
-     * @param string $end
-     * @param bool   $closed
-     *
-     * @return bool
-     */
-    public static function isBetweenDates($date, $start, $end, $closed = true): bool
-    {
-        if ($closed) {
-            if ($start === $date || $end === $date) {
-                return true;
-            }
-        }
-        return (HelperDate::getDif($start, $date) < 0 && HelperDate::getDif($end, $date) > 0);
-    }
-
-    /**
-     * Indica si un valor esta comprendido entre otros dos
-     *
-     * @param int  $num
-     * @param int  $min
-     * @param int  $max
-     * @param bool $closed
-     *
-     * @return bool
-     */
-    public static function isBetween($num, $min, $max, $closed = true)
-    {
-        if ($closed) {
-            return ($num >= $min && $num <= $max);
-        } else {
-            return ($num > $min && $num < $max);
-        }
-    }
-
-    /**
-     * Busca si existe una palabra entera dentro de un texto
-     * Ex:  "web" => "PHP is web scripting" => true (es una palabra)
-     * Ex:  "web" => "PHP is web, scripting" => true (es una palabra)
-     * Ex:  "web" => "PHP is web,scripting" => true (es una palabra)
-     *      "web" => "PHP is the website scripting" => false (no es
-     *               una palabra)
-     *
-     * @param string $txt
-     * @param string $wordSearch
-     *
-     * @return bool
+     * @param string $txt El texto en el cual se buscará la palabra.
+     * @param string $wordSearch La palabra que se desea buscar en el texto.
+     * @return bool Retorna true si la palabra existe en el texto, false en caso contrario.
      */
     public static function existWord($txt, $wordSearch)
     {
-        // false => error
         $ret = preg_match("/\b" . $wordSearch . "\b/i", $txt);
         if (false === $ret) {
             return false;
         }
-        // 0 si no coincide
+
         return 0 !== $ret;
     }
 
     /**
-     * Devuelve true si el texto tiene CR o LF
+     * Verifica si una cadena de texto contiene caracteres de nueva línea (CRLF).
      *
-     * @param $txt
-     *
-     * @return bool
+     * @param string $txt La cadena de texto a verificar.
+     * @return bool Devuelve true si la cadena contiene CRLF, de lo contrario false.
      */
     public static function existCRLF($txt)
     {
@@ -432,36 +226,14 @@ abstract class HelperValidate
     }
 
     /**
-     * Comprueba si una string termina por un string determinado
-     * Insensible a mayúsculas, minúsculas y acentos
+     * Verifica si una cadena comienza con un prefijo específico.
      *
-     * @param $str
-     * @param $end
+     * Esta función comprueba si la cadena dada ($str) comienza con el prefijo especificado ($begin).
+     * La comparación se realiza sin tener en cuenta las mayúsculas y minúsculas y sin acentos.
      *
-     * @return bool
-     */
-    public static function endsWith($str, $end): bool
-    {
-        $len = strlen($end);
-        $lenStr = strlen($str);
-        if ($len > 0  && $lenStr > 0 && ($lenStr - $len) > 0) {
-            $str = substr($str, $lenStr - $len);
-            return (0 == strcasecmp(
-                HelperString::removeAccents($str),
-                HelperString::removeAccents($end)
-            ));
-        }
-        return false;
-    }
-
-    /**
-     * Indica si un string empieza por un determinado string.
-     * Insensible a mayúsculas, minúsculas y acentos
-     *
-     * @param $str
-     * @param $begin
-     *
-     * @return bool
+     * @param string $str La cadena en la que se buscará el prefijo.
+     * @param string $begin El prefijo que se buscará al inicio de la cadena.
+     * @return bool Devuelve true si la cadena comienza con el prefijo especificado, de lo contrario, devuelve false.
      */
     public static function beginsWith($str, $begin): bool
     {
@@ -478,109 +250,32 @@ abstract class HelperValidate
     }
 
     /**
-     * Devuelve true si todos los caracteres son letras, numero o 
-     * decimales  (int, float)
-     * Incluye el punto como decimal.
-     * Pueden pasarse como parámetro otros carácteres para considerar 
-     * ser válidos
+     * Verifica si una cadena termina con una subcadena específica.
      *
-     * @param mixed  $mixed
-     * @param string $sAllowedChars
-     *
-     * @return bool
+     * @param string $str La cadena en la que se buscará el final.
+     * @param string $end La subcadena que se espera al final de $str.
+     * @return bool Devuelve true si $str termina con $end, de lo contrario false.
      */
-    public static function areOnlyNumLetters($mixed, $sAllowedChars = '')
+    public static function endsWith($str, $end): bool
     {
-        return (preg_match("/^[a-zA-Z0-9." . $sAllowedChars . "]+$/", '' . $mixed));
+        $len = strlen($end);
+        $lenStr = strlen($str);
+        if ($len > 0  && $lenStr > 0 && ($lenStr - $len) > 0) {
+            $str = substr($str, $lenStr - $len);
+            return (0 == strcasecmp(
+                HelperString::removeAccents($str),
+                HelperString::removeAccents($end)
+            ));
+        }
+        return false;
     }
 
     /**
-     * Devuelve true si todos los caracteres números (int)
-     * No acepta el punto decimal
-     * Pueden pasarse como parámetro otros carácteres para considerar 
-     * ser válidos
+     * Verifica si una cadena es una URL válida.
      *
-     * @param mixed  $mixed
-     * @param string $sAllowedChars
-     *
-     * @return bool
-     */
-    public static function areOnlyNum($mixed, $sAllowedChars = '')
-    {
-        return (preg_match('/^[0-9' . $sAllowedChars . ']+$/', '' . $mixed));
-    }
-
-    /**
-     * Devuelve true si todos los caracteres son letras
-     * Pueden pasarse como parámetro otros carácteres para considerar 
-     * ser válidos
-     *
-     * @param mixed  $mixed
-     * @param string $sAllowedChars
-     *
-     * @return bool
-     */
-    public static function areOnlyLetters($mixed, $sAllowedChars = '')
-    {
-        return (preg_match("/^[a-zA-Z" . $sAllowedChars . "]+$/", '' . $mixed));
-    }
-
-    /**
-     * Comprueba si dos valores son iguales, pueden ser string, o 
-     * números.
-     * Insensible a mayúsculas, minúsculas y acentos
-     *
-     * @param $mix1
-     * @param $mix2
-     *
-     * @return bool
-     */
-    public static function areEquals($mix1, $mix2): bool
-    {
-        return (0 == strcasecmp(
-            HelperString::removeAccents($mix1),
-            HelperString::removeAccents($mix2)
-        ));
-    }
-
-    /**
-     * Indica si es un código postal válido
-     *
-     * @param string $zipcode
-     *
-     * @return bool
-     */
-    public static function isZipCode($zipcode)
-    {
-        $zipcode  = trim($zipcode);
-        $ok       = (preg_match("/^[0-9]+$/", $zipcode) &&
-            strlen($zipcode) == 5);
-        $province = intval(substr($zipcode, 0, 2));
-
-        return ($province >= 1 && $province <= 52 && $ok);
-    }
-
-    /**
-     * Indica si un año es bisiesto
-     *
-     * @param $year
-     *
-     * @return bool
-     */
-    public static function isYearLeap($year)
-    {
-        return (($year % 4) == 0 && (($year % 100) != 0 || ($year % 400) == 0));
-    }
-
-    /**
-     * Comprueva la sintaxis de una url es correcta
-     * Puede contener o no el protocolo.
-     * Detecta el protocolo http, https y ftp
-     *
-     * @param      $url
-     * @param bool $protocol
-     *
-     * @return false|int
+     * @param string $url La URL a validar.
+     * @param bool $protocol (Opcional) Si es true, la URL debe incluir el protocolo (http, https, ftp).
+     * @return bool Devuelve true si la URL es válida, false en caso contrario.
      */
     public static function isUrl($url, $protocol = false)
     {
@@ -597,24 +292,12 @@ abstract class HelperValidate
     }
 
     /**
-     * Valida si un número de teléfono pertenece a un móvil
+     * Verifica si la solicitud es una petición AJAX.
      *
-     * @param string $phone
+     * Esta función comprueba si el valor de la cabecera 'HTTP_X_REQUESTED_WITH' 
+     * no está vacío y si es igual a 'xmlhttprequest' (en minúsculas).
      *
-     * @return bool
-     */
-    public static function isPhoneMovile($phone)
-    {
-        $phone = trim($phone);
-        $ok    = (preg_match("/^[0-9]+$/", $phone) && strlen($phone) == 9);
-        $code  = intval(substr($phone, 0, 1));
-        return (($code == 6 || $code == 7) && $ok);
-    }
-
-    /**
-     * Valida si existe una peticion AJAX
-     *
-     * @return bool
+     * @return bool Devuelve true si la solicitud es una petición AJAX, de lo contrario false.
      */
     public static function ajaxRequest()
     {
