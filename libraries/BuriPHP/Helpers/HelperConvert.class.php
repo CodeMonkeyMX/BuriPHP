@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,13 +18,13 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperConvert
 {
     /**
-     * Transforma un string SI/NO-YES/NO-Y/S-S/N-1/0 a bool.
-     * Si el valor está vacío o null, devuelve null.
-     * Devuelve null si no se puede convertir a true o false.
+     * Convierte una cadena de texto a un valor booleano.
      *
-     * @param string $strBool
-     *
-     * @return bool
+     * @param mixed $strBool La cadena de texto o valor a convertir en booleano.
+     *                        Puede ser una cadena, número o booleano.
+     * @return bool|null Devuelve true si la cadena representa un valor verdadero 
+     *                   ('S', 'Y', 'SI', 'YES', '1'), false si representa un valor 
+     *                   falso ('N', 'NO', '0'), y null si no se puede determinar.
      */
     public static function toBool($strBool)
     {
@@ -34,13 +34,7 @@ abstract class HelperConvert
         } else {
             if (is_string($strBool)) {
                 $name = strtolower(strtr($strBool, 'ÍÓíó', 'ioio'));
-
-                $sn = preg_replace(
-                    '/^[:alnum:]/ui',
-                    '',
-                    strtoupper(trim($name))
-                );
-
+                $sn = preg_replace('/^[:alnum:]/ui', '', strtoupper(trim($name)));
                 if ($sn == 'S' || $sn == 'Y' || $sn == 'SI' || $sn == 'YES' || $sn == '1') {
                     $ret = true;
                 } else {
@@ -72,22 +66,22 @@ abstract class HelperConvert
     }
 
     /**
-     * Convierte un valor a un array.
-     * Siempre devuelve un array.
+     * Convierte un elemento a un array.
      *
-     * @param $element
-     *
-     * @return array
+     * @param mixed $element El elemento a convertir.
+     * 
+     * @return array El elemento convertido a array. Si el elemento es un array, se devuelve tal cual.
+     *               Si el elemento está vacío, se devuelve un array vacío.
+     *               Si el elemento es un objeto, se convierte a array.
+     *               En cualquier otro caso, se devuelve un array con el elemento como único valor.
      */
     public static function toArray($element): array
     {
         if (is_array($element)) {
             return $element;
         } elseif (HelperValidate::isEmpty($element)) {
-            // No aseguramos que no tenga valor
             return [];
         } elseif (is_object($element)) {
-
             return (array)$element;
         } else {
             return array($element);
@@ -95,37 +89,31 @@ abstract class HelperConvert
     }
 
     /**
-     * Devuelve un texto sin especiales HTML y sustitutyendo los CRLF
-     * por <br />
-     * Si es blanco o null devuelve '&nbsp;'
+     * Convierte el texto proporcionado a HTML.
      *
-     * @param $txt
+     * Esta función toma una cadena de texto y la convierte a HTML seguro.
+     * Si el texto no está vacío, se convierte cualquier carácter especial a su
+     * entidad HTML correspondiente y se reemplazan los saltos de línea con etiquetas <br>.
+     * Si el texto está vacío, se devuelve un espacio no separable (&nbsp;).
      *
-     * @return string
+     * @param string $txt El texto a convertir.
+     * @return string El texto convertido a HTML.
      */
     public static function toHtml($txt)
     {
-        if (HelperValidate::isEmpty($txt)) {
-            return '&nbsp;';
-        }
-        return nl2br(htmlspecialchars($txt));
+        return (!HelperValidate::isEmpty($txt)) ? nl2br(htmlspecialchars($txt)) : '&nbsp;';
     }
 
     /**
-     * Devuelve un valor en formato monetario +/- 1.234,00 $.
-     * Si el valor esta vació, devuelve null.
+     * Convierte un valor numérico a formato de moneda.
      *
-     * @param string|int $value
-     * @param bool       $simbol
-     *
-     * @return string
+     * @param mixed $value El valor a convertir. Puede ser un número o una cadena que represente un número.
+     * @param bool $simbol (Opcional) Indica si se debe agregar el símbolo de moneda. Por defecto es true.
+     * @param string $simbolSign (Opcional) El símbolo de moneda a utilizar. Por defecto es '$'.
+     * @return string|null La representación del valor en formato de moneda, o null si el valor está vacío.
      */
     public static function toCurrency($value, $simbol = true, $simbolSign = '$')
     {
-        if (HelperValidate::isEmpty($value)) {
-            return null;
-        }
-
         $f = floatval($value);
 
         $sSimbol = $simbol ? ' ' . $simbolSign : '';
@@ -137,7 +125,7 @@ abstract class HelperConvert
         if ($f >= 0) {
             $sSign = '';
         } else {
-            $f      *= (-1);
+            $f *= (-1);
             $sSign = '-';
         }
 
@@ -147,101 +135,45 @@ abstract class HelperConvert
     }
 
     /**
-     * Convierte una TimStamp en una fecha.
-     * Formato fecha: yyyy-mm-dd
+     * Convierte un valor booleano a una cadena de texto "Sí" o "No".
      *
-     * @param int $timestamp
-     *
-     * @return string
+     * @param mixed $value El valor a convertir. Puede ser un booleano, un entero, o una cadena vacía.
+     * @return string Retorna "Sí" si el valor es verdadero o 1, "No" si el valor es falso, 0 o vacío, 
+     *                y retorna el valor original si no cumple con las condiciones anteriores.
      */
-    public static function timeStamp2Date($timestamp)
+    public static function bool2YesNo($value)
     {
-        $date_str = getdate($timestamp);
+        if ($value === '' || is_null($value)) {
+            return '';
+        }
 
-        $year = $date_str["year"];
-        $mon  = $date_str["mon"];
-        $day  = $date_str["mday"];
-
-        return sprintf("%4d-%02d-%02d", $year, $mon, $day);
-    }
-
-    /**
-     * Convierte un timestamp en una fecha y hora
-     * Fomato fecha: yyyy-mm-dd hh:mm:ss
-     *
-     * @param int $timestamp
-     *
-     * @return string
-     */
-    public static function timeStamp2DateTime($timestamp)
-    {
-        $date_str = getdate($timestamp);
-
-        $year = $date_str["year"];
-        $mon  = $date_str["mon"];
-        $mday = $date_str["mday"];
-        $h    = $date_str["hours"];
-        $m    = $date_str["minutes"];
-        $s    = $date_str["seconds"];
-
-        return sprintf(
-            "%4d-%02d-%02d %02d:%02d:%02d",
-            $year,
-            $mon,
-            $mday,
-            $h,
-            $m,
-            $s
-        );
-    }
-
-    /**
-     * Convierte una hora, minutos y segundo en segundos
-     *
-     * @param $time
-     *
-     * @return int
-     */
-    public static function toSecs($time)
-    {
-        if (HelperValidate::isTime($time)) {
-
-            $arrTime = explode(":", $time);
-
-            settype($arrTime[0], "integer");
-            settype($arrTime[1], "integer");
-            settype($arrTime[2], "integer");
-
-            $seconds = ($arrTime[0] * pow(60, 2));
-            $seconds += (($arrTime[1] * 60) + $arrTime[2]);
-
-            return $seconds;
+        if ($value == true || $value == 1) {
+            return 'Sí';
         } else {
-            return 0;
+            if ($value == false || $value == 0 || empty($value)) {
+                return 'No';
+            } else {
+                return $value;
+            }
         }
     }
 
     /**
-     * Convierte un string en un double.
-     * El separador decimales en el string es la coma
-     * Los miles no llevan punto.
+     * Convierte una cadena de texto a un número de punto flotante (double).
      *
-     * @param $txt
-     *
-     * @return float
+     * @param string $txt La cadena de texto que se desea convertir.
+     * @return double El valor numérico de punto flotante resultante de la conversión.
      */
     public static function string2Double($txt)
     {
-        /*  Cambiamos la coma decimal por el punto */
         return doubleval(str_replace(',', '.', $txt));
     }
 
     /**
-     * Separa una frase a un array donde cada palabra es una posición
+     * Convierte una cadena de texto en un array de palabras.
      *
-     * @param string $str
-     *
-     * @return array
+     * @param string $str La cadena de texto a convertir.
+     * @return array Un array de palabras obtenidas de la cadena de texto.
      */
     public static function string2ArrayWord($str)
     {
@@ -249,12 +181,10 @@ abstract class HelperConvert
     }
 
     /**
-     * Transforma un string en un array donde cada caracter es una
-     * posición
+     * Convierte una cadena en un array de caracteres.
      *
-     * @param string $str
-     *
-     * @return array
+     * @param string $str La cadena que se desea convertir.
+     * @return array Un array donde cada elemento es un carácter de la cadena original.
      */
     public static function string2ArrayChar($str)
     {
@@ -262,39 +192,41 @@ abstract class HelperConvert
     }
 
     /**
-     * Devuelve un string en formato decimal de un numero.
-     * Por defecto no muestra decimales, separador miles el punto.
-     * Puede redondear.
+     * Convierte un número a una cadena con formato específico.
      *
-     * @param int|double $num
-     * @param int        $decimals
-     * @param bool       $round
-     *
-     * @return string
+     * @param float $num El número a convertir.
+     * @param int $decimals El número de decimales a mostrar. Por defecto es 0.
+     * @param bool $round Indica si se debe redondear el número. Por defecto es true.
+     * @return string El número formateado como cadena.
      */
     public static function number2String($num, $decimals = 0, $round = true)
     {
         $sSepDecimals = '';
+
         if ($decimals != 0) {
             $sSepDecimals = ',';
         }
+
         $sSepMiles = '.';
+
         if (empty($num)) {
             return '0';
         }
+
         if (!$round) {
             return number_format($num, $decimals, $sSepDecimals, $sSepMiles);
         }
+
         $str = number_format($num, $decimals + 1, $sSepDecimals, $sSepMiles);
+
         return substr($str, 0, strlen($str) - 1);
     }
 
     /**
-     * Devuelve un valor numérico como BYTES
+     * Convierte una cadena de tamaño en bytes.
      *
-     * @param int $size
-     *
-     * @return string
+     * @param string $size La cadena que representa el tamaño, puede incluir sufijos como 'k', 'm', 'g' para kilobytes, megabytes y gigabytes respectivamente.
+     * @return int|string El tamaño en bytes como un entero, o una cadena vacía si la entrada no es válida.
      */
     public static function number2Bytes($size)
     {
@@ -305,11 +237,8 @@ abstract class HelperConvert
             'm' => 1048576, /* 1024 * 1024 */
             'g' => 1073741824, /* 1024 * 1024 * 1024 */
         );
-        if (preg_match(
-            '/([0-9]+)\s*(k|m|g)?(b?(ytes?)?)/i',
-            $size,
-            $match
-        )) {
+
+        if (preg_match('/([0-9]+)\s*(k|m|g)?(b?(ytes?)?)/i', $size, $match)) {
             return $match[1] * $suffixes[strtolower($match[2])];
         }
 
@@ -317,11 +246,10 @@ abstract class HelperConvert
     }
 
     /**
-     * Muestra el valor string 0 per un valor null, vacio o zero
+     * Convierte una cadena vacía en '0'.
      *
-     * @param string $str
-     *
-     * @return string
+     * @param string $str La cadena a evaluar.
+     * @return string '0' si la cadena está vacía, de lo contrario, retorna la cadena original.
      */
     public static function empty2Zero($str)
     {
@@ -329,12 +257,10 @@ abstract class HelperConvert
     }
 
     /**
-     * En lugar de mostrar el zero, null o vacío, muestra un espacio
-     * en blanco
+     * Convierte un valor vacío en un espacio no separable (&nbsp;).
      *
-     * @param int $val
-     *
-     * @return string
+     * @param mixed $val El valor a evaluar.
+     * @return mixed Devuelve '&nbsp;' si el valor está vacío, de lo contrario devuelve el valor original.
      */
     public static function empty2Nbsp($val)
     {
@@ -342,12 +268,10 @@ abstract class HelperConvert
     }
 
     /**
-     * Decodifica los caracteres especiales a html
-     * &quot; => "
+     * Decodifica las entidades HTML en una cadena de texto.
      *
-     * @param $txt
-     *
-     * @return string
+     * @param string $txt La cadena de texto que contiene entidades HTML a decodificar.
+     * @return string La cadena de texto con las entidades HTML decodificadas.
      */
     public static function decodeEntities($txt)
     {
@@ -355,252 +279,17 @@ abstract class HelperConvert
     }
 
     /**
-     * Devuelve la fecha y hora (yyyy-mm-dd hh:mm:ss) partiendo de una
-     * fecha en formato UTC
-     * Formato UTC:  20070724T224556Z
+     * Convierte etiquetas <br> en saltos de línea (\n) en una cadena dada.
      *
-     * @param string $dateUtc
-     *
-     * @return string
-     */
-    public static function dateUTC2DateTime($dateUtc)
-    {
-        $utcdiff = date('Z', time()); /* Diferencia UTC en segundos */
-
-        /* UTC = 20070724T224556Z */
-        $y = (int)substr($dateUtc, 0, 4);
-        $m = (int)substr($dateUtc, 4, 2);
-        $d = (int)substr($dateUtc, 6, 2);
-        $h = (int)substr($dateUtc, 9, 2);
-        $i = (int)substr($dateUtc, 11, 2);
-        $s = (int)substr($dateUtc, 13, 2);
-
-        $stamp = mktime($h, $i, $s, $m, $d, $y);
-
-        $stamp += $utcdiff;
-
-        return date('Y-m-d H:i:s', $stamp);
-    }
-
-    /**
-     * Convierte una fecha y hora (GMT) en otra en función de una zona 
-     * horaria
-     *
-     * @param string $datetime
-     * @param string $timezone
-     *
-     * @return string
-     * @throws Exception
-     */
-    public static function dateTime2TimeZone($datetime, $timezone = 'America/Mexico_City')
-    {
-        if (HelperValidate::isEmpty($datetime)) {
-            return '';
-        }
-
-        if (strlen($datetime) == 16) {
-            $datetime .= ':00';
-        }
-
-        $offset = 0;
-
-        $userTimezone = new \DateTimeZone($timezone);
-        try {
-            $date = new \DateTime($datetime, $userTimezone);
-        } catch (\Exception $e) {
-            throw $e;
-        }
-
-        $offset = $userTimezone->getOffset($date);
-
-        return HelperDateTime::addMinutes($datetime, $offset);
-    }
-
-    /**
-     * Devuevle sólo la fecha de una fecha y hora
-     * Formato fecha: yyyy-mm-dd
-     *
-     * @param $dateHour
-     *
-     * @return string
-     */
-    public static function dateTime2Date($dateHour)
-    {
-        if (strrpos($dateHour, ' ') === false) {
-            return null;
-        }
-        list($dt,) = explode(' ', $dateHour);
-        return $dt;
-    }
-
-    /**
-     * Convierte una fecha Std en timestamp, 15/05/2020 => 1273874400
-     * Formato fecha: yyyy-mm-dd
-     *
-     * @param $date
-     *
-     * @return int
-     */
-    public static function date2TimeStamp($date)
-    {
-        $hours   = 0;
-        $minutes = 0;
-        $seconds = 0;
-        list($year, $month, $day) = explode("-", $date);
-
-        return mktime(
-            $hours,
-            $minutes,
-            $seconds,
-            $month,
-            $day,
-            $year
-        );
-    }
-
-    /**
-     * Devuelve el dia de la fecha en formato texto 
-     * (lunes, 23 de enero del 2009)
-     * Formato fecha: yyyy-mm-dd
-     *
-     * @param $date
-     *
-     * @return string
-     */
-    public static function date2Text($date)
-    {
-        $arrDays = array(
-            'Domingo',
-            'Lunes',
-            'Martes',
-            'Miercoles',
-            'Jueves',
-            'Viernes',
-            'Sábado'
-        );
-
-        $arrMonths = array(
-            'Enero',
-            'Febrero',
-            'Marzo',
-            'Abril',
-            'Mayo',
-            'Junio',
-            'Julio',
-            'Agosto',
-            'Septiembre',
-            'Octubre',
-            'Noviembre',
-            'Diciembre'
-        );
-
-        list($year, $month, $day) = explode('-', $date);
-
-        $wd = date('w', mktime(0, 0, 0, $month, $day, $year));
-
-        return $arrDays[$wd] . ", " . $day . " de " . $arrMonths[$month - 1] . " del " . $year;
-    }
-
-    /**
-     * Muestra la fecha en función de un formato.
-     * No comprueba si la fecha es correcta
-     * Formato de fecha: yyyy-mm-dd
-     *
-     * @param        $date
-     * @param string $showFormat
-     *
-     * @return string
-     */
-    public static function date2Format($date, $showFormat = 'dd/mm/yyyy')
-    {
-        if (HelperValidate::isEmpty($date)) {
-            return '';
-        }
-        /* El formato de fecha de entrada es yyyy-mm-dd */
-        list($y, $m, $d) = explode('-', $date);
-
-        switch ($showFormat) {
-            case 'dd/mm/yyyy':
-                return "$d/$m/$y";
-
-            case 'mm/dd/yyyy':
-                return "$m/$d/$y";
-
-            case 'yyyy/mm/dd':
-                return "$y/$m/$d";
-
-            case 'dd-mm-yyyy':
-                return "$d-$m-$y";
-
-            case 'mm-dd-yyyy':
-                return "$m-$d-$y";
-
-            case 'yyyy-mm-dd':
-                return "$y-$m-$d";
-
-            case 'dd.mm.yyyy':
-                return "$d.$m.$y";
-
-            case 'mm.dd.yyyy':
-                return "$m.$d.$y";
-
-            case 'yyyy.mm.dd':
-                return "$y.$m.$d";
-
-            default:
-                return $date;
-        }
-    }
-
-    /**
-     * Devuelve un fecha y hora en formato UTC partiendo de una fecha 
-     * yyyy-mm-dd
-     * Format utc: YYYYMMDDTHHiissZ
-     *
-     * @param string $date
-     *
-     * @return string
-     */
-    public static function date2DateUTC($date)
-    {
-        $utcdiff = date('Z', time()); /* Diferencia UTC en segundos */
-        list($year, $month, $day) = explode('-', $date);
-        $stamp = mktime(0, 0, 0, $month, $day, $year);
-        $stamp -= $utcdiff;
-        return date('Ymd\THi\0\0\Z', $stamp);
-    }
-
-    /**
-     * Devuelve un datetime partiendo de una fecha yyy-mm-dd  y una 
-     * hora, minutos, y segundos.
-     *
-     * @param string $date
-     * @param int    $hour
-     * @param int    $minutes
-     * @param int    $seconds
-     *
-     * @return string
-     */
-    public static function date2DateTime($date, $hour = 0, $minutes = 0, $seconds = 0)
-    {
-        return $date . ' ' . substr('00' . $hour, -2) . ':'
-            . substr('00' . $minutes, -2) . ':'
-            . substr('00' . $seconds, -2);
-    }
-
-
-    /**
-     * Sustitule el tab <br> html por un \n
-     *
-     * @param $str
-     *
-     * @return string
+     * @param string $str La cadena que contiene las etiquetas <br> a convertir.
+     * @return string La cadena con las etiquetas <br> convertidas en saltos de línea (\n).
      */
     public static function br2nl($str)
     {
         if (empty($str)) {
             return $str;
         }
+
         preg_match_all("#<[^>]+br.+?>#i", $str, $matches);
 
         foreach ($matches[0] as $match) {
@@ -614,29 +303,5 @@ abstract class HelperConvert
         $str = str_ireplace($brs, "\n", $str);
 
         return $str;
-    }
-
-    /**
-     * Devuelve el literal SI o NO en función de un valor booleano
-     * Devuelve '' si el valor esta vacio
-     *
-     * @param $value
-     *
-     * @return string
-     */
-    public static function bool2YesNo($value)
-    {
-        if ($value === '' || is_null($value)) {
-            return '';
-        }
-        if ($value == true || $value == 1) {
-            return 'Sí';
-        } else {
-            if ($value == false || $value == 0 || empty($value)) {
-                return 'No';
-            } else {
-                return $value;
-            }
-        }
     }
 }
