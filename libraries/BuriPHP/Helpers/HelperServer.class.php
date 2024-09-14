@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,15 +18,18 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperServer
 {
     /**
-     * Devuevle la url actual
-     * 
-     * @return string
+     * Obtiene la URL actual del servidor.
+     *
+     * Este método construye y devuelve la URL completa actual del servidor,
+     * incluyendo el dominio, el nombre del script y la cadena de consulta (query string) si existe.
+     *
+     * @return string La URL completa actual del servidor.
      */
     public static function getCurrentUrl()
     {
         $domain = self::getDomainHttp();
         $file   = self::getValue('SCRIPT_NAME');
-        $qs     = self::getQueryString();
+        $qs     = HelperUrl::getQueryString();
         if (empty($qs)) {
             return $domain . $file;
         } else {
@@ -35,9 +38,17 @@ abstract class HelperServer
     }
 
     /**
-     * Obtiene la url dividida en array.
+     * Obtiene la información actual del path.
      *
-     * @return array
+     * Este método verifica varias variables de entorno para determinar la información del path actual.
+     * Primero, intenta obtener el valor de 'PATH_INFO'. Si no está disponible, intenta obtener 'ORIG_PATH_INFO'.
+     * Si ninguno de estos valores está disponible, retorna una cadena vacía.
+     *
+     * Si se encuentra información del path, se divide en un array utilizando '/' como delimitador.
+     * Luego, compacta el array y sanitiza cada valor del array.
+     *
+     * @return array Un array con la información del path actual, sanitizada y compactada.
+     *               Si no hay información del path, retorna un array con un solo elemento "/".
      */
     public static function getCurrentPathInfo()
     {
@@ -64,15 +75,16 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve el valor de una variable del array superglobal 
-     * $_SERVER
-     * NOTA: filter_input para las opciones INPUT_SERVER y INPUT_ENV 
-     * no funcionan para FASTCGI
-     * Si la variable no existe, devuelve '' (string vacío)
+     * Obtiene el valor de una variable del servidor.
      *
-     * @param string $key
+     * Esta función busca el valor de una variable en el array superglobal $_SERVER.
+     * Primero intenta obtener el valor usando la función filter_input con el filtro
+     * FILTER_UNSAFE_RAW. Si no se encuentra la variable usando filter_input, intenta
+     * obtener el valor directamente del array $_SERVER.
      *
-     * @return string
+     * @param string $key La clave de la variable del servidor que se desea obtener.
+     * @return string El valor de la variable del servidor. Si la variable no existe,
+     *                se devuelve una cadena vacía.
      */
     public static function getValue($key)
     {
@@ -92,8 +104,12 @@ abstract class HelperServer
     }
 
     /**
-     * Comprueba si el navegador soporta compresión con gzip
-     * @return bool
+     * Comprueba si el cliente acepta la compresión gzip.
+     *
+     * Esta función verifica el encabezado HTTP "Accept-Encoding" para determinar
+     * si el cliente acepta la compresión gzip o x-gzip.
+     *
+     * @return bool Devuelve true si el cliente acepta gzip o x-gzip, de lo contrario false.
      */
     public static function compressionZip()
     {
@@ -104,61 +120,9 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve un valor de un parámetro de la query_string.
-     * Devuelve null si no existe
+     * Obtiene el dominio de la URL actual.
      *
-     * @param $parameter
-     *
-     * @return bool|mixed
-     */
-    public static function getQueryStringParam($parameter)
-    {
-        $matches = array();
-        $qs      = self::getQueryString();
-        $number  = preg_match("/{$parameter}=([a-zA-Z0-9_-]+)[&]?/", $qs, $matches);
-
-        if ($number) {
-            return '' . $matches[1];
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Devuelve un array con los parametros y valores de la 
-     * query_string
-     * @return array
-     */
-    public static function getQueryStringParams()
-    {
-        $qs = self::getQueryString();
-        if (HelperValidate::isEmpty($qs)) {
-            return [];
-        }
-        $arrayTmp    = [];
-        $arrayParams = explode('&', $qs);
-        foreach ($arrayParams as $key => $value) {
-
-            $b = explode('=', $arrayParams[$key]);
-
-            $arrayTmp[$b[0]] = $b[1];
-        }
-        return $arrayTmp;
-    }
-
-    /**
-     * Devuelve la query string completa de la url
-     * @return string
-     */
-    public static function getQueryString()
-    {
-        return self::getValue('QUERY_STRING');
-    }
-
-    /**
-     * Devuevle la url actual
-     * 
-     * @return string
+     * @return string El dominio de la URL actual.
      */
     public static function getDomain()
     {
@@ -166,8 +130,9 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve el Dominio con protocolo Http/https del servidor
-     * @return string
+     * Obtiene el dominio completo con el protocolo HTTP o HTTPS.
+     *
+     * @return string El dominio completo con el protocolo, o una cadena vacía si no se encuentra el host HTTP.
      */
     public static function getDomainHttp()
     {
@@ -180,8 +145,13 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve el protocolo Http/https del servidor
-     * @return string
+     * Obtiene el protocolo utilizado por el servidor.
+     *
+     * Este método determina si el protocolo es HTTPS o HTTP basándose en las variables del servidor.
+     * Verifica si la variable 'HTTPS' está presente y es 'on' o '1', o si la variable 'HTTP_X_FORWARDED_PROTO' 
+     * está presente y es 'https'. Si alguna de estas condiciones se cumple, el protocolo es 'https', de lo contrario, es 'http'.
+     *
+     * @return string El protocolo utilizado ('https' o 'http').
      */
     public static function getProtocol()
     {
@@ -193,8 +163,9 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve el path del servidor.
-     * @return mixed
+     * Obtiene la raíz del documento del servidor.
+     *
+     * @return string La raíz del documento del servidor.
      */
     public static function getDocumentRoot()
     {
@@ -202,11 +173,9 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve un array con todos los valores de la variable 
-     * superglobal $_SERVER
-     * NOTA: filter_input para las opciones INPUT_SERVER y INPUT_ENV 
-     * no funcionan para FASTCGI
-     * @return array
+     * Obtiene todos los valores del arreglo $_SERVER.
+     *
+     * @return array Un arreglo asociativo con todas las claves y valores del arreglo $_SERVER.
      */
     public static function getAllValues()
     {
@@ -228,12 +197,13 @@ abstract class HelperServer
     }
 
     /**
-     * Devuelve el usuario y contraseña procedentes del dialogo de 
-     * autenticación.
-     * $_SERVER['PHP_AUTH_USER'] y $_SERVER['PHP_AUTH_PW']
+     * Obtiene las credenciales de autenticación del usuario.
      *
-     * @param string $user
-     * @param string $psw
+     * Este método asigna los valores de autenticación del usuario y la contraseña
+     * a las variables proporcionadas por referencia.
+     *
+     * @param string &$user Variable que recibirá el nombre de usuario de autenticación.
+     * @param string &$psw Variable que recibirá la contraseña de autenticación.
      */
     public static function getAuthentication(&$user, &$psw)
     {
@@ -243,11 +213,16 @@ abstract class HelperServer
     }
 
     /**
-     * Establece cuáles errores de PHP son notificados.
+     * Establece la configuración de reporte de errores y la visualización de errores en PHP.
      *
-     * @param string $str
+     * @param string $str Nivel de reporte de errores. Puede ser uno de los siguientes valores:
+     *                    - 'none' o '0': No se reportan errores.
+     *                    - 'simple': Se reportan errores simples (E_ERROR | E_WARNING | E_PARSE).
+     *                    - 'maximum': Se reportan todos los errores (E_ALL).
+     *                    - 'development': Se reportan todos los errores y se muestran (E_ALL y display_errors = 1).
+     *                    - 'default' o '-1': Configuración por defecto (sin cambios).
      *
-     * @return mixed
+     * @return string Resultado de la configuración de error_reporting y ini_set.
      */
     public static function errorReporting($str)
     {
