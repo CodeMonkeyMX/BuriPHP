@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -20,11 +20,14 @@ use BuriPHP\Settings;
 abstract class HelperCrypt
 {
     /**
-     * Encriptación por trasposición
+     * Encripta una cadena de texto utilizando un método de transposición.
      *
-     * @param string $str
+     * Este método toma una cadena de texto y la encripta utilizando una técnica de transposición
+     * que involucra operaciones XOR con una clave generada a partir de la longitud de la cadena
+     * y la posición de cada carácter. El resultado final se codifica en base64.
      *
-     * @return string
+     * @param string $str La cadena de texto a encriptar.
+     * @return string La cadena de texto encriptada y codificada en base64.
      */
     public static function encryptTransposition($str)
     {
@@ -52,11 +55,10 @@ abstract class HelperCrypt
     }
 
     /**
-     * Desencriptación por trasposición
+     * Desencripta una cadena encriptada utilizando un método de transposición.
      *
-     * @param string $strEncriptado
-     *
-     * @return string
+     * @param string $strEncriptado La cadena encriptada en base64 que se va a desencriptar.
+     * @return string La cadena desencriptada.
      */
     public static function decryptTransposition($strEncriptado)
     {
@@ -81,16 +83,16 @@ abstract class HelperCrypt
 
             $str .= $encrypted_byte;
         }
+
         return $str;
     }
 
     /**
-     * Encripta un texto mediante una contraseña
+     * Encripta un mensaje utilizando una clave proporcionada.
      *
-     * @param $message
-     * @param $key
-     *
-     * @return string
+     * @param string $message El mensaje que se desea encriptar.
+     * @param string $key La clave utilizada para encriptar el mensaje.
+     * @return string El mensaje encriptado, codificado en base64 dos veces y con el texto invertido.
      */
     public static function encryptWithKey($message, $key)
     {
@@ -98,9 +100,11 @@ abstract class HelperCrypt
         settype($message, "string");
         $i = strlen($message) - 1;
         $j = strlen($key);
+
         if (strlen($message) <= 0) {
             return "";
         }
+
         do {
             $encryptedText .= ($message[$i] ^ $key[$i % $j]);
         } while ($i--);
@@ -108,16 +112,16 @@ abstract class HelperCrypt
         $encryptedText = base64_encode(base64_encode(
             strrev($encryptedText)
         ));
+
         return $encryptedText;
     }
 
     /**
-     * Desencripta un texto mediante una contraseña
+     * Desencripta un mensaje utilizando una clave proporcionada.
      *
-     * @param $message
-     * @param $key
-     *
-     * @return string
+     * @param string $message El mensaje encriptado que se va a desencriptar.
+     * @param string $key La clave utilizada para desencriptar el mensaje.
+     * @return string El mensaje desencriptado.
      */
     public static function decryptWithKey($message, $key)
     {
@@ -127,24 +131,25 @@ abstract class HelperCrypt
         $message = base64_decode(base64_decode($message));
         $i       = strlen($message) - 1;
         $j       = strlen($key);
+
         if (strlen($message) <= 0) {
             return "";
         }
+
         do {
             $str .= ($message[$i] ^ $key[$i % $j]);
         } while ($i--);
+
         $str = strrev($str);
+
         return $str;
     }
 
     /**
-     * Encripta un valor de forma que siempre de diferente.
-     * Se le concatena la fecha y hora.
-     * Se reemplazan los caracteres +=/ por -,_
+     * Encripta una cadena de texto añadiendo un número aleatorio y utilizando una transposición.
      *
-     * @param string $str
-     *
-     * @return string
+     * @param string $str La cadena de texto a encriptar.
+     * @return string La cadena de texto encriptada con caracteres seguros para URLs.
      */
     public static function encryptRandom($str)
     {
@@ -170,11 +175,11 @@ abstract class HelperCrypt
     }
 
     /**
-     * Desencripta un valor.
+     * Desencripta una cadena que ha sido cifrada con un método de transposición y
+     * devuelve la parte de la cadena hasta el último separador '#'.
      *
-     * @param string $str
-     *
-     * @return string
+     * @param string $str La cadena cifrada que se desea desencriptar.
+     * @return string La cadena desencriptada hasta el último separador '#'.
      */
     public static function decryptRandom($str)
     {
@@ -195,11 +200,14 @@ abstract class HelperCrypt
     }
 
     /**
-     * Genera un número dado de bytes.
+     * Genera una cadena de bytes aleatorios.
      *
-     * @param integer $length
+     * Esta función intenta generar una cadena de bytes aleatorios utilizando varias fuentes de entropía.
+     * Primero intenta usar `openssl_random_pseudo_bytes` si está disponible y es seguro.
+     * Si no, utiliza `/dev/urandom` si está disponible, o una combinación de otras técnicas para generar entropía.
      *
-     * @return mixed
+     * @param int $length La longitud de la cadena de bytes aleatorios a generar. Por defecto es 16.
+     * @return string Una cadena de bytes aleatorios de la longitud especificada.
      */
     public static function randomBytes($length = 16)
     {
@@ -281,12 +289,11 @@ abstract class HelperCrypt
     }
 
     /**
-     * Crea un hash encriptado con la clave secreta de la configuración.
+     * Crea un hash utilizando el algoritmo especificado y los datos proporcionados.
      *
-     * @param string $algorithm
-     * @param string $data
-     *
-     * @return  string
+     * @param string $algorithm El algoritmo de hash a utilizar (por ejemplo, 'sha256').
+     * @param string $data Los datos que se van a hashear.
+     * @return string El hash resultante.
      */
     public static function createHash($algorithm, $data)
     {
@@ -297,11 +304,10 @@ abstract class HelperCrypt
     }
 
     /**
-     * Crea una password encriptada.
+     * Crea una contraseña segura utilizando un hash y un salt aleatorio.
      *
-     * @param string $string
-     *
-     * @return string
+     * @param string $string La cadena de texto que se utilizará para generar la contraseña.
+     * @return string La contraseña generada en el formato 'hash:salt'.
      */
     public static function createPassword($string)
     {
