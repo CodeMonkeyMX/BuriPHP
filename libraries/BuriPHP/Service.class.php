@@ -33,7 +33,7 @@ class Service
         }
 
         $service = explode('\\', get_called_class());
-        $service = HelperArray::getLast($service);
+        $service = HelperArray::getLastValue($service);
 
         $module = (isset($args['module']) && !empty($args['module'])) ? $args['module'] : Router::getEndpoint()[1]['MODULE'];
 
