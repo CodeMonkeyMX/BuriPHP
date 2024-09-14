@@ -6,7 +6,7 @@
  * @abstract
  *
  * @since 2.0Alpha
- * @version 1.0
+ * @version 1.1
  * @license You can see LICENSE.txt
  *
  * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
@@ -18,13 +18,10 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperUrl
 {
     /**
-     * Quita caracteres especiales de un string.
+     * Sanitiza una URL eliminando espacios en blanco y caracteres no deseados.
      *
-     * @static
-     *
-     * @param   string    $str    Cadena de texto
-     *
-     * @return  string
+     * @param string $str La URL a sanitizar.
+     * @return string La URL sanitizada.
      */
     public static function urlSanitized($str)
     {
@@ -37,48 +34,84 @@ abstract class HelperUrl
     }
 
     /**
-     * Devuelve el query string de la url
+     * Obtiene el valor de un parámetro de la cadena de consulta (query string).
      *
-     * @param string $url
-     *
-     * @return string
+     * @param string $parameter El nombre del parámetro a buscar en la cadena de consulta.
+     * @return string|null El valor del parámetro si se encuentra, o null si no se encuentra.
      */
-    public static function getQueryString($url)
+    public static function getQueryStringParam($parameter)
     {
-        $ret = strpos($url, '?');
-        if (false === $ret) {
+        $matches = array();
+        $qs      = self::getQueryString();
+        $number  = preg_match("/{$parameter}=([a-zA-Z0-9_-]+)[&]?/", $qs, $matches);
+
+        if ($number) {
+            return '' . $matches[1];
+        } else {
             return null;
         }
-        return substr($url, ($ret + 1), strlen($url));
     }
 
     /**
-     * Devuelve el contenido de la página de la url
+     * Obtiene los parámetros de la cadena de consulta (query string) de la URL.
      *
-     * @param string $httpUrl
-     *
-     * @return string
+     * @return array Un arreglo asociativo donde las claves son los nombres de los parámetros y los valores son los valores de los parámetros.
      */
-    public static function getPageContent($httpUrl)
+    public static function getQueryStringParams()
     {
-        $file = fopen($httpUrl, "r");
-        $line = '';
-        if ($file) {
-            while (!feof($file)) {
-                $line .= fread($file, 1024 * 50);
-            }
-            return $line;
+        $qs = self::getQueryString();
+        if (HelperValidate::isEmpty($qs)) {
+            return [];
         }
-        return false;
+        $arrayTmp    = [];
+        $arrayParams = explode('&', $qs);
+        foreach ($arrayParams as $key => $value) {
+
+            $b = explode('=', $arrayParams[$key]);
+
+            $arrayTmp[$b[0]] = $b[1];
+        }
+        return $arrayTmp;
     }
 
     /**
-     * Devuelve el nombre del host de una url
-     * Ex: "http://www.php.net/index.html" => www.php.net
+     * Obtiene la cadena de consulta (query string) de la URL.
      *
-     * @param string $url
+     * @return string La cadena de consulta (query string).
+     */
+    public static function getQueryString()
+    {
+        return HelperServer::getValue('QUERY_STRING');
+    }
+
+    /**
+     * Añade un parámetro a la cadena de consulta (query string) de la URL.
      *
-     * @return string
+     * @param string $url La URL a la que se añadirá el parámetro.
+     * @param string $parameter El nombre del parámetro a añadir.
+     * @param string $value El valor del parámetro a añadir.
+     * @return string La URL con el parámetro añadido.
+     */
+    public static function addQueryStringParam($url, $parameter, $value)
+    {
+        $parsedUrl = parse_url($url);
+        $query = isset($parsedUrl['query']) ? $parsedUrl['query'] : '';
+        parse_str($query, $queryParams);
+        $queryParams[$parameter] = $value;
+        $newQuery = http_build_query($queryParams);
+        $newUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+        if (isset($parsedUrl['path'])) {
+            $newUrl .= $parsedUrl['path'];
+        }
+        $newUrl .= '?' . $newQuery;
+        return $newUrl;
+    }
+
+    /**
+     * Obtiene el host de una URL dada.
+     *
+     * @param string $txt La URL de la cual se desea obtener el host.
+     * @return string El host de la URL proporcionada.
      */
     public static function getHost($txt)
     {
@@ -86,39 +119,10 @@ abstract class HelperUrl
     }
 
     /**
-     * Devuelve un array con los parametros y valores o null si no hay 
-     * valores
+     * Codifica una URL utilizando el esquema de codificación de URL.
      *
-     * @param string $url
-     *
-     * @return array
-     */
-    public static function getArrayParams($url)
-    {
-        if (false === strpos($url, '?')) {
-            // No hay parámetros
-            return null;
-        }
-
-        $q = self::getQueryString($url);
-        $t = [];
-        $a = explode('&', $q);
-        foreach ($a as $key => $value) {
-            $b = explode('=', $a[$key]);
-
-            $t[$b[0]] = $b[1];
-        }
-        return $t;
-    }
-
-    /**
-     * Codifica como URL una cadena
-     * Ex:    'http://www.php.es/par word/any?no=true&si=23'
-     *        'http%3A%2F%2Fwww.php.es%2Fpar%20word%2Fany%3Fno%3Dtrue%26si%3D23'
-     *
-     * @param string $url
-     *
-     * @return string
+     * @param string $url La URL que se desea codificar.
+     * @return string La URL codificada.
      */
     public static function encode($url)
     {
@@ -126,54 +130,13 @@ abstract class HelperUrl
     }
 
     /**
-     * Decodifica una cadena cifrada como URL
-     * Ex:    'http%3A%2F%2Fwww.php.es%2Fpar%20word%2Fany%3Fno%3Dtrue%26si%3D23'
-     *         'http://www.php.es/par word/any?no=true&si=23'
+     * Decodifica una URL codificada.
      *
-     * @param string $urlEncoded
-     *
-     * @return string
+     * @param string $urlEncoded La URL codificada que se desea decodificar.
+     * @return string La URL decodificada.
      */
     public static function decode($urlEncoded)
     {
         return urldecode($urlEncoded);
-    }
-
-    /**
-     * Añade un parámetro que es un número aleatorio.
-     * Se usa para que cada url sea diferente
-     *
-     * @param string $url
-     * @param int    $lenRandom
-     *
-     * @return string
-     */
-    public static function addRandom($url, $lenRandom = 4)
-    {
-        $sep = '&';
-        if (false === strpos($url, '?')) {
-            $sep = '?';
-        }
-        $url .= $sep . "rnd=" . HelperString::random($lenRandom);
-        return $url;
-    }
-
-    /**
-     * Devuelve una nueva url con un parrámetro/valor añadido
-     *
-     * @param $url
-     * @param $parameter
-     * @param $value
-     *
-     * @return string
-     */
-    public static function addParam($url, $parameter, $value)
-    {
-        $sep = '&';
-        if (false === strpos($url, '?')) {
-            $sep = '?';
-        }
-        $url .= $sep . $parameter . '=' . $value;
-        return $url;
     }
 }
