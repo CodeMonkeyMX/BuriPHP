@@ -1,20 +1,20 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries.Helpers
- * 
- * @abstract
- *
- * @since 2.0Alpha
- * @version 1.1
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP\Helpers;
 
+/**
+ * Clase abstracta HelperString
+ * 
+ * Esta clase proporciona métodos auxiliares relacionados con la manipulación de cadenas de texto.
+ * 
+ * @package BuriPHP\Helpers
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.2
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ * @abstract
+ */
 abstract class HelperString
 {
     /**

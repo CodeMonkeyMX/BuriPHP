@@ -1,16 +1,5 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries
- *
- * @since 1.0
- * @version 2.4
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP;
 
 use Libraries\BuriPHP\Helpers\HelperArray;
@@ -18,14 +7,43 @@ use Libraries\BuriPHP\Helpers\HelperFile;
 use Libraries\BuriPHP\Helpers\HelperLog;
 use Libraries\BuriPHP\Helpers\HelperValidate;
 
+/**
+ * Clase Controller
+ *
+ * Esta clase representa un controlador base en el framework BuriPHP. Proporciona métodos para inicializar
+ * servicios y vistas, compartir controladores y servicios, y obtener parámetros de solicitudes HTTP.
+ * 
+ * @package BuriPHP
+ * @author Kiske
+ * @since 1.0
+ * @version 2.5
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ */
 class Controller
 {
+    /**
+     * Servicio utilizado por el controlador.
+     *
+     * @var mixed $service
+     */
     public $service;
+
+    /**
+     * @var mixed $view La vista asociada al controlador.
+     */
     public $view;
 
     /**
-     * Busca si existe el service del controller.
-     * Si existe, lo inicializa.
+     * Constructor de la clase Controller.
+     *
+     * Este constructor inicializa el controlador y su servicio asociado, si existe.
+     * También inicializa la vista para el controlador.
+     *
+     * @param array ...$args Argumentos opcionales para la inicialización del controlador.
+     *                       - 'module': (opcional) El módulo específico a utilizar.
+     *
+     * @return void
      */
     final public function __construct(...$args)
     {
@@ -54,7 +72,15 @@ class Controller
     }
 
     /**
-     * Conecta un controlador de otro módulo.
+     * Método que comparte el controlador de un módulo específico.
+     *
+     * @param string $module El nombre del módulo.
+     * @param string $controller El nombre del controlador.
+     *
+     * @return object Instancia del controlador solicitado.
+     *
+     * @throws \Exception Si el módulo o el controlador no existen.
+     * @throws \Throwable Si ocurre cualquier otro error durante la ejecución.
      */
     final public function controllerShared($module, $controller)
     {
@@ -92,7 +118,11 @@ class Controller
     }
 
     /**
-     * Conecta un servicio de otro módulo.
+     * Método final público que proporciona un servicio compartido.
+     *
+     * @param string $module El nombre del módulo.
+     * @param string $service El nombre del servicio.
+     * @return mixed El resultado del método serviceShared del objeto Service.
      */
     final public function serviceShared($module, $service)
     {
@@ -101,7 +131,12 @@ class Controller
     }
 
     /**
-     * Obtiene los parametros enviados en la url.
+     * Obtiene los parámetros de la ruta actual.
+     *
+     * Esta función protegida y final devuelve los parámetros asociados con la 
+     * ruta actual utilizando el método `getEndpoint` de la clase `Router`.
+     *
+     * @return array Los parámetros de la ruta actual.
      */
     final protected function getParams()
     {
@@ -109,7 +144,13 @@ class Controller
     }
 
     /**
-     * Obtiene la data enviada por get.
+     * Obtiene los parámetros de la solicitud HTTP GET.
+     *
+     * Este método recopila los parámetros enviados a través de una solicitud HTTP GET
+     * y los devuelve en un arreglo. Si no hay parámetros en la solicitud, se devuelve
+     * un arreglo vacío.
+     *
+     * @return array Arreglo que contiene los parámetros de la solicitud GET.
      */
     final public function getGet()
     {
@@ -124,9 +165,14 @@ class Controller
     }
 
     /**
-     * Obtiene los datos de la solicitud HTTP y los devuelve como un arreglo.
+     * Obtiene la carga útil de la solicitud.
      *
-     * @return array Los datos de la solicitud HTTP.
+     * Este método recopila y combina datos de diferentes fuentes de la solicitud:
+     * - Datos sin procesar (raw data) obtenidos mediante el método `parseRawData()`.
+     * - Datos enviados a través del método POST.
+     * - Archivos subidos a través de la solicitud.
+     *
+     * @return array La carga útil de la solicitud combinada.
      */
     final public function getPayload()
     {
@@ -149,14 +195,14 @@ class Controller
     }
 
     /**
-     * Función privada para analizar los datos sin procesar.
-     *
-     * Lee los datos sin procesar de la entrada PHP y los procesa según su tipo.
-     * Si los datos son JSON, los decodifica y devuelve un array asociativo.
-     * Si los datos son una cadena de consulta, los analiza y devuelve un array asociativo.
-     * Si los datos son una carga de archivo, los guarda temporalmente y actualiza la variable global $_FILES.
-     *
-     * @return array Los datos procesados.
+     * Analiza los datos sin procesar de la entrada PHP y los convierte en un array asociativo.
+     * 
+     * Este método lee los datos sin procesar de la entrada PHP (`php://input`), determina si los datos están en formato JSON o en formato de formulario,
+     * y los convierte en un array asociativo. Si los datos contienen archivos, también se procesan y se almacenan en la variable global `$_FILES`.
+     * 
+     * @return array Un array asociativo que contiene los datos procesados.
+     * 
+     * @throws Exception Si ocurre un error durante el procesamiento de los datos.
      */
     private static function parseRawData()
     {

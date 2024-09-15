@@ -1,16 +1,5 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries
- *
- * @since 2.0Alpha
- * @version 1.3
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP;
 
 use Libraries\BuriPHP\Helpers\HelperArray;
@@ -20,16 +9,64 @@ use Libraries\BuriPHP\Helpers\HelperServer;
 use Libraries\BuriPHP\Helpers\HelperString;
 use Libraries\BuriPHP\Helpers\HelperValidate;
 
+/**
+ * Clase Router
+ * 
+ * Esta clase se encarga de manejar las rutas dentro de la aplicación.
+ * Proporciona métodos para definir y gestionar las rutas, así como para 
+ * despachar las solicitudes a los controladores correspondientes.
+ * 
+ * @package BuriPHP
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.4
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ */
 class Router
 {
+    /**
+     * @var array $urls Arreglo que almacena las URLs registradas en el enrutador.
+     */
     private array $urls = [];
+
+    /**
+     * @var int $useVersion La versión del endpoint que se utilizará. Por defecto es 1.
+     */
     private int $useVersion = 1;
+
+    /**
+     * @var string $currentEndpoint
+     * 
+     * Almacena el endpoint actual que se está procesando.
+     * Inicialmente se establece como una cadena vacía.
+     */
     private string $currentEndpoint = "";
+
+    /**
+     * @var string $useModule
+     * 
+     * Esta propiedad almacena el nombre del módulo que se está utilizando.
+     * Inicialmente, se establece como una cadena vacía.
+     */
     private string $useModule = "";
+
+    /**
+     * @var string $useController
+     * 
+     * Esta propiedad almacena el nombre del controlador que se utilizará.
+     * Inicialmente está vacía.
+     */
     private string $useController = "";
 
     /**
-     * Inicializa los endpoints globales.
+     * Constructor de la clase Router.
+     *
+     * Este método se ejecuta al instanciar la clase Router. Verifica si la variable global
+     * '_APP' contiene la clave 'ENDPOINTS'. Si no está definida, la inicializa como un array vacío.
+     * Luego, llama al método reset() para restablecer el estado del objeto.
+     *
+     * @return void
      */
     final public function __construct()
     {
@@ -41,7 +78,12 @@ class Router
     }
 
     /**
-     * Reinicia las variables.
+     * Restablece las propiedades del enrutador a sus valores predeterminados.
+     *
+     * Este método establece la versión de uso a 1, y reinicia las propiedades
+     * `currentEndpoint`, `useModule` y `useController` a cadenas vacías.
+     *
+     * @return void
      */
     private function reset()
     {
@@ -52,9 +94,9 @@ class Router
     }
 
     /**
-     * Genera un enpoint vacío.
-     * 
-     * @return array
+     * Devuelve un array de endpoints.
+     *
+     * @return array Un array vacío convertido utilizando HelperConvert::toArray().
      */
     public function endpoints()
     {
@@ -62,11 +104,10 @@ class Router
     }
 
     /**
-     * Asigna la version que se usará para el endpoint.
-     * 
-     * @param int $int
-     * 
-     * @return mixed
+     * Establece la versión del endpoint a utilizar.
+     *
+     * @param int $int La versión que se va a establecer.
+     * @return self Retorna la instancia actual para permitir el encadenamiento de métodos.
      */
     final public function useVersion($int)
     {
@@ -76,11 +117,17 @@ class Router
     }
 
     /**
-     * Crea un grupo de endpoint.
-     * 
-     * @param string $str
-     * 
-     * @return mixed
+     * Añade un grupo de rutas al enrutador.
+     *
+     * Este método permite agregar un grupo de rutas al enrutador. Si la cadena
+     * proporcionada contiene la palabra '__VERSION__', esta será reemplazada por
+     * la versión actual en uso.
+     *
+     * @param string $str La cadena que representa el grupo de rutas. Puede contener
+     *                    la palabra '__VERSION__' que será reemplazada por la versión
+     *                    actual.
+     * @return self Retorna la instancia actual del enrutador para permitir el encadenamiento
+     *              de métodos.
      */
     final public function addGroup($str)
     {
@@ -94,11 +141,10 @@ class Router
     }
 
     /**
-     * Asigna el modulo.
-     * 
-     * @param string $str
-     * 
-     * @return mixed
+     * Establece el módulo a utilizar.
+     *
+     * @param string $str El nombre del módulo a utilizar.
+     * @return self Retorna la instancia actual para permitir el encadenamiento de métodos.
      */
     final public function useModule($str)
     {
@@ -108,11 +154,10 @@ class Router
     }
 
     /**
-     * Asigna el controlador.
-     * 
-     * @param string $str
-     * 
-     * @return mixed
+     * Establece el controlador a utilizar.
+     *
+     * @param string $str Nombre del controlador.
+     * @return self Retorna la instancia actual para permitir el encadenamiento de métodos.
      */
     final public function useController($str)
     {
@@ -122,13 +167,12 @@ class Router
     }
 
     /**
-     * Asigna usar el metodo GET
-     * 
-     * @param string $str
-     * @param string $method
-     * @param string $contentType
-     * 
-     * @return mixed
+     * Registra una nueva ruta GET en el enrutador.
+     *
+     * @param string $str La ruta que se añadirá al endpoint actual.
+     * @param string|callable $method El método o controlador que se ejecutará cuando se acceda a la ruta.
+     * @param array $settings Configuraciones adicionales para la ruta.
+     * @return self Retorna la instancia actual del enrutador para permitir el encadenamiento de métodos.
      */
     final public function get($str, $method, array $settings = [])
     {
@@ -138,13 +182,12 @@ class Router
     }
 
     /**
-     * Asigna usar el metodo POST
-     * 
-     * @param string $str
-     * @param string $method
-     * @param string $contentType
-     * 
-     * @return mixed
+     * Registra una nueva ruta HTTP POST en el enrutador.
+     *
+     * @param string $str La ruta relativa que se añadirá al endpoint actual.
+     * @param string|callable $method El método o función que se ejecutará cuando se acceda a la ruta.
+     * @param array $settings (Opcional) Configuraciones adicionales para la ruta.
+     * @return self Retorna la instancia actual del enrutador para permitir el encadenamiento de métodos.
      */
     final public function post($str, $method, array $settings = [])
     {
@@ -154,13 +197,12 @@ class Router
     }
 
     /**
-     * Asigna usar el metodo PUT
-     * 
-     * @param string $str
-     * @param string $method
-     * @param string $contentType
-     * 
-     * @return mixed
+     * Registra una ruta con el método HTTP PUT.
+     *
+     * @param string $str La ruta a la que se asociará el método.
+     * @param callable|string $method El método que se ejecutará cuando se acceda a la ruta.
+     * @param array $settings Configuraciones adicionales para la ruta.
+     * @return self Retorna la instancia actual para permitir el encadenamiento de métodos.
      */
     final public function put($str, $method, array $settings = [])
     {
@@ -170,13 +212,12 @@ class Router
     }
 
     /**
-     * Asigna usar el metodo PATCH
-     * 
-     * @param string $str
-     * @param string $method
-     * @param string $contentType
-     * 
-     * @return mixed
+     * Registra una ruta PATCH en el enrutador.
+     *
+     * @param string $str La cadena que representa la ruta.
+     * @param callable|string $method El método o controlador que manejará la solicitud PATCH.
+     * @param array $settings (Opcional) Configuraciones adicionales para la ruta.
+     * @return self Retorna la instancia del enrutador para permitir el encadenamiento de métodos.
      */
     final public function patch($str, $method, array $settings = [])
     {
@@ -186,13 +227,12 @@ class Router
     }
 
     /**
-     * Asigna usar el metodo DELETE
-     * 
-     * @param string $str
-     * @param string $method
-     * @param string $contentType
-     * 
-     * @return mixed
+     * Registra una nueva ruta DELETE en el enrutador.
+     *
+     * @param string $str La cadena que representa la ruta.
+     * @param string $method El método que se llamará cuando se acceda a la ruta.
+     * @param array $settings (Opcional) Configuraciones adicionales para la ruta.
+     * @return self Retorna la instancia actual del enrutador.
      */
     final public function delete($str, $method, array $settings = [])
     {
@@ -202,12 +242,14 @@ class Router
     }
 
     /**
-     * Crea un string con todos los parametros del endpoint.
-     * 
-     * @param string $url
-     * @param string $requestMethod
-     * @param string $method
-     * @param string $contentType
+     * Une una URL con el método de solicitud, el método de la clase y la configuración proporcionada.
+     *
+     * @param string $url La URL a la que se unirá.
+     * @param string $requestMethod El método de solicitud HTTP (GET, POST, etc.).
+     * @param string $method El método de la clase que se llamará.
+     * @param array $settings Configuración adicional para la solicitud.
+     *
+     * @return void
      */
     private function join($url, $requestMethod, $method, $settings)
     {
@@ -258,7 +300,13 @@ class Router
     }
 
     /**
-     * Establece los endpoints
+     * Asigna las URLs al arreglo global de endpoints y elimina duplicados.
+     *
+     * Este método combina las URLs actuales con las existentes en el arreglo global
+     * de endpoints y luego elimina cualquier duplicado. Finalmente, resetea el estado
+     * interno del objeto.
+     *
+     * @return void
      */
     final public function assign()
     {
@@ -269,9 +317,15 @@ class Router
     }
 
     /**
-     * Agrega los endpoints desde un módulo.
-     * 
-     * @param string $module
+     * Agrega los endpoints para un módulo específico.
+     *
+     * Este método verifica si el archivo `Endpoints.class.php` existe en el directorio del módulo especificado.
+     * Si el archivo existe, lo incluye y llama al método `endpoints` de la clase `Endpoints` dentro del espacio de nombres del módulo.
+     * Si el archivo no existe, lanza una excepción.
+     *
+     * @param string $module El nombre del módulo para el cual se agregarán los endpoints.
+     * @throws \Exception Si no se encuentra el archivo `Endpoints.class.php` en el módulo especificado.
+     * @throws \Throwable Si ocurre cualquier otro error durante la ejecución.
      */
     final public function addForModule($module)
     {
@@ -291,9 +345,19 @@ class Router
     }
 
     /**
-     * Divide el endpoint en parametros.
+     * Descompone un endpoint en sus componentes y devuelve un array asociativo con la información.
+     *
+     * @param string $endpoint El endpoint a descomponer.
      * 
-     * @param string $endpoint
+     * @return array Un array asociativo con los siguientes elementos:
+     * - 'REQUEST_METHOD': El método de la solicitud (GET, POST, etc.).
+     * - 'REQUEST_URI': La URI de la solicitud.
+     * - 'MODULE': El módulo al que pertenece el endpoint.
+     * - 'CONTROLLER': El controlador que maneja el endpoint.
+     * - 'METHOD': El método del controlador que maneja el endpoint.
+     * - 'PARAMS': Un array asociativo de parámetros extraídos de la URI actual.
+     * - 'CONTENT_TYPE': El tipo de contenido de la solicitud.
+     * - 'SETTINGS': Un array asociativo de configuraciones adicionales.
      */
     final public static function explodeEndpoint($endpoint)
     {
@@ -337,7 +401,9 @@ class Router
     }
 
     /**
-     * Devuelve el endpoint actual.
+     * Obtiene el endpoint actual.
+     *
+     * @return array Un arreglo que contiene el endpoint actual y su versión explotada.
      */
     final public static function getEndpoint()
     {

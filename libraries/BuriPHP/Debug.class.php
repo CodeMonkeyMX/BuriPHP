@@ -1,26 +1,28 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries
- *
- * @since 2.0Alpha
- * @version 1.0
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP;
 
 use Libraries\BuriPHP\Helpers\HelperConvert;
 
+/**
+ * Clase abstracta Debug
+ * 
+ * Esta clase proporciona funcionalidades de depuración para la aplicación.
+ * 
+ * @package BuriPHP
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.1
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ * @abstract
+ */
 abstract class Debug
 {
     /**
-     * Muetra un alert por navegador.
+     * Muestra una alerta en el navegador con el texto proporcionado.
      *
-     * @param String
+     * @param string $txt El texto que se mostrará en la alerta.
      */
     public static function alert($txt)
     {
@@ -28,9 +30,9 @@ abstract class Debug
     }
 
     /**
-     * Imprime una variable.
+     * Imprime el texto proporcionado seguido de un salto de línea.
      *
-     * @param String
+     * @param string $txt El texto que se va a imprimir.
      */
     public static function echo($txt)
     {
@@ -38,9 +40,12 @@ abstract class Debug
     }
 
     /**
-     * Imprime un array.
+     * Imprime el texto proporcionado, ya sea como un array o en formato JSON.
      *
-     * @param String
+     * @param mixed $txt El texto que se va a convertir e imprimir.
+     * @param bool $json (Opcional) Si es true, el texto se imprimirá en formato JSON. Por defecto es false.
+     *
+     * @return void
      */
     public static function print($txt, $json = false)
     {
@@ -50,9 +55,9 @@ abstract class Debug
     }
 
     /**
-     * Imprime un array con etiqueta <pre>.
+     * Muestra el contenido formateado dentro de etiquetas <pre>.
      *
-     * @param String
+     * @param mixed $txt El contenido a mostrar.
      */
     public static function pre($txt)
     {
@@ -62,9 +67,13 @@ abstract class Debug
     }
 
     /**
-     * Muestra un variable o estructura por una nueva ventana del navegador.
+     * Abre una nueva ventana del navegador y muestra el contenido formateado de la variable proporcionada.
      *
-     * @param $txt
+     * @param mixed $txt La variable que se desea imprimir y visualizar en una nueva ventana del navegador.
+     *
+     * El contenido de la variable se convierte en una cadena con formato HTML, se escapan los caracteres especiales
+     * y se reemplazan los saltos de línea por etiquetas <br>. Luego, se abre una nueva ventana del navegador y se 
+     * muestra el contenido formateado dentro de un elemento <pre>.
      */
     public static function pr($txt)
     {

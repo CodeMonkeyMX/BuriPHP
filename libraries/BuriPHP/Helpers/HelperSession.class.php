@@ -1,20 +1,20 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries.Helpers
- * 
- * @abstract
- *
- * @since 2.0Alpha
- * @version 1.1
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP\Helpers;
 
+/**
+ * Clase abstracta HelperSession
+ * 
+ * Esta clase proporciona métodos y propiedades para manejar sesiones en la aplicación.
+ * 
+ * @package BuriPHP\Helpers
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.2
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ * @abstract
+ */
 abstract class HelperSession
 {
     /**

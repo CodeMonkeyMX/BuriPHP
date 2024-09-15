@@ -1,20 +1,20 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries.Helpers
- * 
- * @abstract
- *
- * @since 2.0Alpha
- * @version 1.1
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP\Helpers;
 
+/**
+ * Clase abstracta HelperArray
+ * 
+ * Esta clase proporciona métodos auxiliares para la manipulación y gestión de arrays.
+ * 
+ * @package BuriPHP\Helpers
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.2
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ * @abstract
+ */
 abstract class HelperArray
 {
     /**

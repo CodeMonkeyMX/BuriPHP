@@ -1,16 +1,5 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries
- *
- * @since 1.0
- * @version 2.0
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP;
 
 use Libraries\BuriPHP\Helpers\HelperArray;
@@ -18,17 +7,30 @@ use Libraries\BuriPHP\Helpers\HelperFile;
 use Libraries\BuriPHP\Helpers\HelperServer;
 use Libraries\BuriPHP\Helpers\HelperString;
 
+/**
+ * Clase View
+ * 
+ * Esta clase es responsable de manejar la lógica de la vista en la aplicación.
+ * Se encarga de renderizar las plantillas y pasar los datos necesarios a las vistas.
+ * 
+ * @package BuriPHP
+ * @author Kiske
+ * @since 1.0
+ * @version 2.1
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ */
 class View
 {
     /**
-     * Renderiza la vista
-     * 
-     * @final
+     * Renderiza una vista y la devuelve como una cadena.
      *
-     * @param object $controller
-     * @param mixed $layouts
-     *
-     * @return string
+     * @param string $file Ruta del archivo de vista a renderizar.
+     * @param string|null|false $base Ruta del archivo base para la vista. 
+     *                                Si es false, solo se muestra el archivo de vista.
+     *                                Si es null, se usa el archivo base por defecto.
+     *                                Si no es null, se usa el archivo base especificado.
+     * @return string La vista renderizada como una cadena.
      */
     final public function render($file, $base = null)
     {
@@ -96,8 +98,12 @@ class View
 
     /**
      * Establece el título de la página.
-     * 
-     * @param string $str
+     *
+     * Esta función final pública establece el título de la página en la variable global
+     * '_APP' utilizando la serialización del string proporcionado.
+     *
+     * @param string $str El título de la página a establecer.
+     * @return void
      */
     final public function setPageTitle($str)
     {
@@ -105,7 +111,9 @@ class View
     }
 
     /**
-     * Obtiene el título de la página.
+     * Obtiene el título de la página desde la variable global '_APP'.
+     *
+     * @return string El título de la página si está definido, de lo contrario una cadena vacía.
      */
     private function getPageTitle()
     {
@@ -117,11 +125,14 @@ class View
     }
 
     /**
-     * Importa los archivos.
-     * 
-     * @param string $view
-     * 
-     * @return string
+     * Importa archivos en la vista reemplazando los marcadores de posición.
+     *
+     * Este método busca todos los marcadores de posición en la vista que coincidan con el patrón `{{import|ruta/al/archivo}}`.
+     * Luego, intenta importar el contenido de los archivos especificados y reemplaza los marcadores de posición con el contenido del archivo.
+     * Si el archivo no existe, el marcador de posición se reemplaza con una cadena vacía.
+     *
+     * @param string $view La vista que contiene los marcadores de posición para importar archivos.
+     * @return string La vista con los archivos importados y los marcadores de posición reemplazados.
      */
     private function importFiles($view)
     {
@@ -170,11 +181,10 @@ class View
     }
 
     /**
-     * Remplaza las variables html.
-     * 
-     * @param string $view
-     * 
-     * @return string
+     * Reemplaza las variables en la vista con sus valores correspondientes.
+     *
+     * @param string $view El contenido de la vista en el que se reemplazarán las variables.
+     * @return string El contenido de la vista con las variables reemplazadas por sus valores.
      */
     private function replaceVars($view)
     {
@@ -189,12 +199,14 @@ class View
     }
 
     /**
-     * Remplaza el path de los assets.
-     * {{path|*}} antes {$path.*}.
-     * 
-     * @param string $view
-     * 
-     * @return string
+     * Reemplaza las rutas de los recursos en la vista proporcionada.
+     *
+     * Este método busca patrones específicos en la vista que coincidan con 
+     * `{{path|tipo}}` y los reemplaza con las rutas correspondientes a los 
+     * recursos (CSS, JS, imágenes, subidas y plugins).
+     *
+     * @param string $view La vista en la que se reemplazarán las rutas.
+     * @return string La vista con las rutas reemplazadas.
      */
     private function replacePaths($view)
     {
@@ -230,12 +242,13 @@ class View
     }
 
     /**
-     * Incluye las dependencias.
-     * {{asset|css|{{path|css}}styles.css|type:text/css|media:all||rel:stylesheet}}
-     * 
-     * @param string $view
-     * 
-     * @return string
+     * Incluye las dependencias de CSS y JS en la vista proporcionada.
+     *
+     * Este método busca patrones específicos en la vista para identificar
+     * dependencias de archivos CSS y JS, y luego las incluye en la vista.
+     *
+     * @param string $view La vista en la que se incluirán las dependencias.
+     * @return string La vista con las dependencias de CSS y JS incluidas.
      */
     private function includesDependencies($view)
     {
@@ -301,11 +314,14 @@ class View
     }
 
     /**
-     * Incluye los modals.
-     * 
-     * @param string $view
-     * 
-     * @return string
+     * Incluye modales en la vista proporcionada.
+     *
+     * Este método busca y procesa todos los placeholders de modales en la vista,
+     * carga el contenido de los archivos de modales correspondientes y los inserta
+     * en la vista. Los placeholders de modales tienen el formato `{{modal|ruta/al/archivo}}`.
+     *
+     * @param string $view La vista en la que se incluirán los modales.
+     * @return string La vista con los modales incluidos.
      */
     private function includesModals($view)
     {

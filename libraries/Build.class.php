@@ -13,15 +13,52 @@ use Libraries\BuriPHP\Helpers\HelperSession;
 use Libraries\BuriPHP\Helpers\HelperValidate;
 use Libraries\Responses;
 
+/**
+ * Clase Build
+ * 
+ * Esta clase se ejecuta justo antes de mandar a llamar el controlador del endpoint, para construir operaciones
+ * de autenticación y autorización, así como para manejar las excepciones que se puedan lanzar durante el proceso.
+ * 
+ * @package Libraries
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.1
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ */
 class Build
 {
+    /**
+     * @var string $endpoint La URL del endpoint que se utilizará para las solicitudes.
+     */
     private $endpoint;
 
+    /**
+     * Constructor de la clase Build.
+     *
+     * Inicializa una nueva instancia de la clase Build con el endpoint proporcionado.
+     *
+     * @param string $endpoint La URL del endpoint que se utilizará.
+     */
     public function __construct($endpoint)
     {
         $this->endpoint = $endpoint;
     }
 
+    /**
+     * Inicia el proceso de autenticación y autorización para el usuario.
+     *
+     * Este método realiza las siguientes acciones:
+     * 1. Verifica si la sesión está activa, si no, la inicia.
+     * 2. Obtiene el token JWT de la cabecera HTTP o de la sesión.
+     * 3. Si la autenticación es requerida, decodifica el token JWT y obtiene los permisos y suscripciones del usuario desde la base de datos.
+     * 4. Combina la información del token con los permisos y suscripciones del usuario y la almacena en la sesión global.
+     * 5. Si el endpoint es solo público y el JWT no es nulo, lanza una excepción.
+     * 6. Maneja las excepciones lanzadas durante el proceso de autenticación y autorización.
+     *
+     * @throws \Exception Si el usuario no está autorizado para acceder o si el endpoint es solo público.
+     * @return bool False si ocurre un error durante el proceso de autenticación y autorización.
+     */
     public function startup()
     {
         if (!HelperSession::isActive()) {
@@ -116,9 +153,5 @@ class Build
                 }
             }
         }
-    }
-
-    public function wakeup()
-    {
     }
 }

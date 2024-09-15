@@ -1,16 +1,5 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries
- *
- * @since 2.0Alpha
- * @version 1.4
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP;
 
 use BuriPHP\Settings;
@@ -25,12 +14,28 @@ use Libraries\BuriPHP\Helpers\HelperValidate;
 use Libraries\Endpoints\Endpoints;
 
 /**
- * @access public
+ * Clase final Application
+ *
+ * Esta clase representa la aplicación principal de BuriPHP.
  * 
+ * @package BuriPHP
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.5
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
  * @final
  */
 final class Application
 {
+    /**
+     * Constructor de la clase Application.
+     *
+     * Este constructor inicializa la configuración de la aplicación estableciendo
+     * el nivel de reporte de errores y configurando la zona horaria local.
+     *
+     * @return void
+     */
     public function __construct()
     {
         HelperServer::errorReporting(Settings::$errorReporting);
@@ -38,7 +43,21 @@ final class Application
     }
 
     /**
-     * Ejecuta la aplicación.
+     * Ejecuta el flujo principal de la aplicación.
+     *
+     * Este método realiza las siguientes acciones:
+     * 1. Ejecuta todos los endpoints configurados.
+     * 2. Traza el endpoint actual.
+     * 3. Verifica si el endpoint está vacío y lanza un error 404 si es necesario.
+     * 4. Verifica si el REQUEST_METHOD está permitido y lanza un error 405 si no lo está.
+     * 5. Verifica la validez del módulo, controlador y método en el endpoint.
+     * 6. Verifica la existencia del módulo y del controlador.
+     * 7. Inicializa la clase del controlador si existe.
+     * 8. Verifica la existencia del método en el controlador y lo ejecuta si existe.
+     * 9. Maneja excepciones y errores durante la ejecución.
+     *
+     * @throws \Exception Si ocurre algún error durante la ejecución.
+     * @return bool False si ocurre algún error que impida la ejecución.
      */
     public function exec()
     {
@@ -197,10 +216,6 @@ final class Application
             } else {
                 $app = $controller->{$trace['METHOD']}();
 
-                if (class_exists('\\Libraries\Build\Build') && method_exists($build, 'wakeup')) {
-                    $build->wakeup();
-                }
-
                 if (is_array($app)) {
                     echo json_encode($app, JSON_PRETTY_PRINT);
                 } else if (is_string($app)) {
@@ -215,7 +230,12 @@ final class Application
     }
 
     /**
-     * Ejecuta los endpoints
+     * Activa los endpoints definidos en la clase Endpoints.
+     *
+     * Este método crea una nueva instancia de la clase Endpoints y llama al método endpoints() 
+     * para activar los endpoints configurados.
+     *
+     * @return void
      */
     private function triggerEndpoints(): void
     {
@@ -223,7 +243,32 @@ final class Application
     }
 
     /**
-     * Busca el endpoint actual.
+     * Método privado traceEndpoint
+     *
+     * Este método se encarga de rastrear y determinar el endpoint actual y los métodos permitidos
+     * basándose en la información de la solicitud actual y la configuración de endpoints globales.
+     *
+     * Funcionalidad:
+     * - Inicializa las variables $endpoint y $allowedMethods.
+     * - Verifica si la ruta actual comienza con '/'.
+     * - Recorre los endpoints globales y compara la ruta actual con los endpoints configurados.
+     * - Si encuentra una coincidencia, actualiza $allowedMethods y $endpoint según el método de solicitud.
+     * - Si la ruta actual no comienza con '/', realiza una comparación más detallada de la URI.
+     * - Actualiza las variables globales '_APP' con el endpoint actual y los métodos permitidos.
+     *
+     * Variables Globales:
+     * - $GLOBALS['_APP']['ENDPOINTS']: Lista de endpoints configurados.
+     * - $GLOBALS['_APP']['ENDPOINT']: Endpoint actual determinado.
+     * - $GLOBALS['_APP']['ALLOWED_METHODS']: Métodos permitidos para el endpoint actual.
+     *
+     * Dependencias:
+     * - HelperConvert::toArray
+     * - HelperServer::getCurrentPathInfo
+     * - HelperServer::getValue
+     * - HelperArray::append
+     * - HelperArray::compact
+     * - HelperValidate::isEmpty
+     * - HelperArray::dif
      */
     private function traceEndpoint()
     {
@@ -269,7 +314,26 @@ final class Application
     }
 
     /**
-     * Configura la instalación
+     * Establece la configuración de la aplicación.
+     *
+     * @param array $args Un array asociativo con las siguientes claves opcionales:
+     *  - 'domain': El dominio de la aplicación.
+     *  - 'lang': El idioma predeterminado de la aplicación.
+     *  - 'timeZone': La zona horaria de la aplicación.
+     *  - 'locale': La configuración regional de la aplicación.
+     *  - 'errorReporting': El nivel de reporte de errores.
+     *  - 'secret': La clave secreta de la aplicación.
+     *  - 'useDatabase': Booleano que indica si se debe usar la base de datos.
+     *  - 'dbType': El tipo de base de datos.
+     *  - 'dbHost': El host de la base de datos.
+     *  - 'dbName': El nombre de la base de datos.
+     *  - 'dbUser': El usuario de la base de datos.
+     *  - 'dbPass': La contraseña de la base de datos.
+     *  - 'dbCharset': El conjunto de caracteres de la base de datos.
+     *  - 'dbPrefix': El prefijo de las tablas de la base de datos.
+     *  - 'dbPort': El puerto de la base de datos.
+     *
+     * @return void
      */
     public static function setSettings(...$args)
     {

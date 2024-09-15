@@ -1,16 +1,5 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries
- *
- * @since 2.0Alpha
- * @version 1.4
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP;
 
 use Libraries\BuriPHP\Helpers\HelperArray;
@@ -18,13 +7,35 @@ use Libraries\BuriPHP\Helpers\HelperFile;
 use Libraries\BuriPHP\Helpers\HelperLog;
 use Libraries\BuriPHP\Helpers\HelperValidate;
 
+/**
+ * Clase Service
+ * 
+ * Esta clase proporciona servicios esenciales para la aplicación.
+ * 
+ * @package BuriPHP
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 1.5
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ */
 class Service
 {
+    /**
+     * Repositorio utilizado por el servicio.
+     *
+     * @var mixed $repository
+     */
     public $repository;
 
     /**
-     * Busca si existe el repository del controller.
-     * Si existe, lo inicializa.
+     * Constructor de la clase Service.
+     *
+     * Este constructor inicializa la clase y, si existe el método __init, lo llama.
+     * Luego, determina el nombre del servicio y el módulo correspondiente.
+     * Si el archivo del repositorio existe, lo requiere y crea una instancia del repositorio.
+     *
+     * @param mixed ...$args Argumentos opcionales que pueden incluir el módulo.
      */
     final public function __construct(...$args)
     {
@@ -46,7 +57,15 @@ class Service
     }
 
     /**
-     * Conecta un servico de otro módulo.
+     * Método para compartir un servicio de un módulo específico.
+     *
+     * @param string $module El nombre del módulo.
+     * @param string $service El nombre del servicio.
+     * 
+     * @return object Una instancia del servicio solicitado.
+     * 
+     * @throws \Exception Si el módulo o el servicio no existen.
+     * @throws \Throwable Si ocurre cualquier otro error durante la ejecución.
      */
     final public function serviceShared($module, $service)
     {

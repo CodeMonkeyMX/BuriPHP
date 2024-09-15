@@ -1,23 +1,24 @@
 <?php
 
-/**
- * @package BuriPHP.Libraries.Helpers
- * 
- * @abstract
- *
- * @since 2.0Alpha
- * @version 2.0
- * @license You can see LICENSE.txt
- *
- * @author David Miguel Gómez Macías < davidgomezmacias@gmail.com >
- * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
- */
-
 namespace Libraries\BuriPHP\Helpers;
 
 use BuriPHP\Settings;
 use IntlDateFormatter;
 
+/**
+ * Clase abstracta HelperDate
+ * 
+ * Esta clase proporciona métodos auxiliares relacionados con la manipulación y 
+ * el manejo de fechas.
+ * 
+ * @package BuriPHP\Helpers
+ * @author Kiske
+ * @since 2.0Alpha
+ * @version 2.1
+ * @license You can see LICENSE.txt
+ * @copyright Copyright (C) CodeMonkey - Platform. All Rights Reserved.
+ * @abstract
+ */
 abstract class HelperDate
 {
     /**
