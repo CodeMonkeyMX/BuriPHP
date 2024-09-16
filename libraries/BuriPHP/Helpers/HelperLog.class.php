@@ -18,20 +18,24 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperLog
 {
     /**
-     * Guarda un rastro (trace) en un archivo de log.
+     * Guarda un rastro de log en un archivo.
      *
-     * @param string $txt El texto a guardar en el log. Puede contener placeholders (%1, %2, etc.) que serán reemplazados por los argumentos adicionales.
+     * @param string $txt El texto del log que se va a guardar.
+     * @param string $path (Opcional) La ruta donde se guardará el archivo de log. Si no se proporciona, se usará la constante PATH_LOGS.
      *
-     * @throws \Exception Si no se puede crear el directorio de logs.
+     * @throws \Exception Si no se puede crear el directorio especificado.
+     * @throws \Throwable Si ocurre cualquier otro error durante la creación del directorio.
      *
-     * @return void
+     * @return bool Devuelve false si ocurre un error al crear el directorio.
      */
-    public static function saveTrace($txt)
+    public static function saveTrace($txt, $path = '')
     {
-        if (!HelperValidate::isDir(PATH_LOGS)) {
+        $path = ($path === '') ? PATH_LOGS : $path . DS;
+
+        if (!HelperValidate::isDir($path)) {
             try {
-                if (!mkdir(PATH_LOGS, 0700)) {
-                    throw new \Exception('No se pudo crear el directorio de LOGS');
+                if (!mkdir($path, 0700)) {
+                    throw new \Exception('No se pudo crear el directorio' . ($path === '') ? ' de LOGS' : ': ' . $path);
                 }
             } catch (\Throwable $th) {
                 throw $th;
@@ -41,7 +45,7 @@ abstract class HelperLog
         }
 
         /* Ruta completa donde ubicar el archivo de logs */
-        $fileLogs = PATH_LOGS . 'log-' . date('Y-m-d') . '.log';
+        $fileLogs = $path . ($path === '' ?  'log-' : '') . date('Y-m-d') . '.log';
 
         $argNum  = func_num_args();
         $argList = func_get_args();
