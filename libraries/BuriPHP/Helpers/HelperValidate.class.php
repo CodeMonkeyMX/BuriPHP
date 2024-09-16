@@ -18,6 +18,18 @@ namespace Libraries\BuriPHP\Helpers;
 abstract class HelperValidate
 {
     /**
+     * Verifica si una cadena es un JSON válido.
+     *
+     * @param string $string La cadena a verificar.
+     * @return bool Devuelve true si la cadena es un JSON válido, de lo contrario false.
+     */
+    public static function isJson($string): bool
+    {
+        json_decode($string);
+        return (json_last_error() === JSON_ERROR_NONE);
+    }
+
+    /**
      * Verifica si un valor está vacío.
      *
      * Esta función determina si un valor dado debe considerarse vacío.
