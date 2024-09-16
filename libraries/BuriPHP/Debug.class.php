@@ -2,7 +2,10 @@
 
 namespace Libraries\BuriPHP;
 
+use Libraries\BuriPHP\Helpers\HelperArray;
 use Libraries\BuriPHP\Helpers\HelperConvert;
+use Libraries\BuriPHP\Helpers\HelperLog;
+use Libraries\BuriPHP\Helpers\HelperValidate;
 
 /**
  * Clase abstracta Debug
@@ -85,5 +88,29 @@ abstract class Debug
         echo 'w.document.write( "<html lang=\"es\"> <head> <title>debug</title> </head> <body>' . $txt . '</body>" );';
         echo 'w.document.close( );';
         echo '</script>';
+    }
+
+    /**
+     * Guarda el rastro de depuración en un archivo.
+     *
+     * @param mixed $trace El rastro de depuración que puede ser un array, una cadena JSON o una cadena simple.
+     *
+     * Si el rastro es un array, se convierte a una cadena utilizando print_r.
+     * Si el rastro es una cadena JSON, se decodifica y luego se convierte a una cadena utilizando print_r.
+     * Si el rastro es una cadena simple, se le añade un salto de línea al final.
+     *
+     * El rastro de depuración se guarda en un archivo en el directorio de depuración.
+     */
+    public static function saveTrace($trace)
+    {
+        if (is_array($trace)) {
+            $trace = print_r($trace, true);
+        } else if (HelperValidate::isJson($trace)) {
+            $trace = print_r(json_decode($trace, true), true);
+        } else {
+            $trace = $trace . "\n";
+        }
+
+        HelperLog::saveTrace($trace, PATH_ROOT . DS . 'debug');
     }
 }
